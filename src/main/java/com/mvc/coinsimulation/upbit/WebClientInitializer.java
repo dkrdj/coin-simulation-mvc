@@ -10,6 +10,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.client.WebSocketClient;
+import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 
 /**
  * 웹소켓 클라이언트를 초기화하고 업비트 웹소켓에 연결하는 서비스입니다.
@@ -26,7 +27,7 @@ public class WebClientInitializer {
     private final UpbitTickerHandler upbitTickerHandler;
     private final UpbitTradeHandler upbitTradeHandler;
     private final UpbitOrderBookHandler upbitOrderBookHandler;
-    @Value("upbit.websocket.uri")
+    @Value("${upbit.websocket.uri}")
     private String UPBIT_WEBSOCKET_URI;
 
     /**
@@ -35,8 +36,7 @@ public class WebClientInitializer {
      */
     @EventListener(ContextRefreshedEvent.class)
     public void upbitConnect() {
-        client.execute(upbitTickerHandler, UPBIT_WEBSOCKET_URI);
-        client.execute(upbitTradeHandler, UPBIT_WEBSOCKET_URI);
-        client.execute(upbitOrderBookHandler, UPBIT_WEBSOCKET_URI);
+        System.out.println(UPBIT_WEBSOCKET_URI);
+        new StandardWebSocketClient().execute(upbitOrderBookHandler, UPBIT_WEBSOCKET_URI);
     }
 }

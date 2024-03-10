@@ -56,7 +56,7 @@ public class UpbitTickerHandler extends TextWebSocketHandler {
      */
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) {
-
+        System.out.println(message.getPayload());
     }
 
     /**

@@ -7,12 +7,16 @@ import com.mvc.coinsimulation.repository.mongo.EthereumRepository;
 import com.mvc.coinsimulation.service.TicketService;
 import com.mvc.coinsimulation.util.UpbitRequestUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
-import org.springframework.web.socket.handler.TextWebSocketHandler;
+import org.springframework.web.socket.handler.BinaryWebSocketHandler;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * 업비트 웹소켓 연결을 관리하는 핸들러입니다.
@@ -23,14 +27,17 @@ import java.io.IOException;
  */
 @Slf4j
 @Component
-public class UpbitOrderBookHandler extends TextWebSocketHandler {
+public class UpbitOrderBookHandler extends BinaryWebSocketHandler {
+    private final SimpMessageSendingOperations simpMessageSendingOperations;
+
     private final BitcoinRepository bitcoinRepository;
     private final EthereumRepository ethereumRepository;
     private final TicketService ticketService;
     private final ObjectMapper snakeOM;
     private final String ERROR_DUPLICATION = "ID is duplicated";
 
-    public UpbitOrderBookHandler(BitcoinRepository bitcoinRepository, EthereumRepository ethereumRepository, TicketService ticketService) {
+    public UpbitOrderBookHandler(SimpMessageSendingOperations simpMessageSendingOperations, BitcoinRepository bitcoinRepository, EthereumRepository ethereumRepository, TicketService ticketService) {
+        this.simpMessageSendingOperations = simpMessageSendingOperations;
         this.snakeOM = new ObjectMapper().setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
         this.bitcoinRepository = bitcoinRepository;
         this.ethereumRepository = ethereumRepository;
@@ -54,9 +61,12 @@ public class UpbitOrderBookHandler extends TextWebSocketHandler {
      * @param session 웹소켓 세션
      * @param message 받은 메시지
      */
-    @Override
-    protected void handleTextMessage(WebSocketSession session, TextMessage message) {
 
+    @Override
+    protected void handleBinaryMessage(WebSocketSession session, BinaryMessage message) throws Exception {
+//        System.out.println(new String(message.getPayload().array(), StandardCharsets.UTF_8));
+//        simpMessageSendingOperations.convertAndSend("/sub/orderbook", new String(message.getPayload().array(), StandardCharsets.UTF_8));
+        publish(message);
     }
 
     /**
@@ -66,6 +76,11 @@ public class UpbitOrderBookHandler extends TextWebSocketHandler {
      *
      * @return 웹소켓으로 전송할 요청 메시지(JSON 형식)
      */
+
+    @Async
+    protected void publish(BinaryMessage message) {
+        simpMessageSendingOperations.convertAndSend("/sub/orderbook", new String(message.getPayload().array(), StandardCharsets.UTF_8));
+    }
 
 
 }

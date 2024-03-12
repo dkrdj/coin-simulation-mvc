@@ -6,7 +6,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class ExecutionSSEResponse {
+public class ExecutionSseResponse {
     private String gubun;
     private String code;
     private Double price;

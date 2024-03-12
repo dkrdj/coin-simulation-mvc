@@ -36,10 +36,11 @@ dependencies {
     implementation 'com.amazonaws:aws-java-sdk-s3:1.12.671'
 
     //querydsl
-    implementation "com.querydsl:querydsl-jpa"
-    implementation "com.querydsl:querydsl-apt"
-    annotationProcessor "com.querydsl:querydsl-apt"
-    annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
+    implementation "com.querydsl:querydsl-jpa:5.0.0:jakarta"
+    implementation "com.querydsl:querydsl-apt:5.0.0:jakarta"
+    annotationProcessor "com.querydsl:querydsl-apt:5.0.0:jakarta"
+    annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+    annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
@@ -51,4 +52,13 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+
+def querydslSrcDir = 'src/main/generated'
+clean {
+    delete file(querydslSrcDir)
+}
+tasks.withType(JavaCompile) {
+    options.generatedSourceOutputDirectory = file(querydslSrcDir)
 }

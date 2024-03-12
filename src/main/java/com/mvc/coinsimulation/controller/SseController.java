@@ -1,6 +1,6 @@
 package com.mvc.coinsimulation.controller;
 
-import com.mvc.coinsimulation.sse.SseEmitters;
+import com.mvc.coinsimulation.service.SseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -23,7 +23,7 @@ import java.io.IOException;
 @Slf4j
 @RequiredArgsConstructor
 public class SseController {
-    private final SseEmitters sseEmitters;
+    private final SseService sseService;
 
     /**
      * 클라이언트와 SSE 연결을 설정하고 SseEmitter를 반환하는 메서드
@@ -33,9 +33,9 @@ public class SseController {
      */
     @GetMapping(value = "/sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public ResponseEntity<SseEmitter> connect(@SessionAttribute("user") Long userId) {
-        SseEmitter emitter = new SseEmitter(30 * 60 * 1000L); // 30분
+        SseEmitter emitter;
         try {
-            sseEmitters.add(userId, emitter);
+            emitter = sseService.add(userId);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

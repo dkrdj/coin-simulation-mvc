@@ -1,7 +1,10 @@
 package com.mvc.coinsimulation.service;
 
+import com.mvc.coinsimulation.dto.common.Trade;
 import com.mvc.coinsimulation.dto.response.AssetResponse;
 import com.mvc.coinsimulation.dto.response.UserResponse;
+import com.mvc.coinsimulation.entity.Asset;
+import com.mvc.coinsimulation.entity.Order;
 import com.mvc.coinsimulation.entity.User;
 import com.mvc.coinsimulation.enums.CoinConstant;
 import com.mvc.coinsimulation.exception.CashOverException;
@@ -50,6 +53,11 @@ public class AssetService {
                         .currentPrice(ticketService.getCurrentPrice(asset.getCode()) * asset.getAmount())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    public List<Asset> getAssets(List<Order> orders, Trade trade) {
+        List<Long> userIds = orders.stream().map(order -> order.getUserId()).collect(Collectors.toList());
+        return assetRepository.findByUserIdAndCode(userIds, trade.getCode());
     }
 
     /**

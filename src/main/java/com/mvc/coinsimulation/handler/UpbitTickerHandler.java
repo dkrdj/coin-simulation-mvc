@@ -2,17 +2,20 @@ package com.mvc.coinsimulation.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.mvc.coinsimulation.repository.mongo.BitcoinRepository;
-import com.mvc.coinsimulation.repository.mongo.EthereumRepository;
+import com.mvc.coinsimulation.dto.common.TicketDto;
 import com.mvc.coinsimulation.service.TicketService;
 import com.mvc.coinsimulation.util.UpbitRequestUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
-import org.springframework.web.socket.handler.TextWebSocketHandler;
+import org.springframework.web.socket.handler.BinaryWebSocketHandler;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * 업비트 웹소켓 연결을 관리하는 핸들러입니다.
@@ -23,17 +26,14 @@ import java.io.IOException;
  */
 @Slf4j
 @Component
-public class UpbitTickerHandler extends TextWebSocketHandler {
-    private final BitcoinRepository bitcoinRepository;
-    private final EthereumRepository ethereumRepository;
+public class UpbitTickerHandler extends BinaryWebSocketHandler {
     private final TicketService ticketService;
     private final ObjectMapper snakeOM;
-    private final String ERROR_DUPLICATION = "ID is duplicated";
+    private final SimpMessageSendingOperations simpMessageSendingOperations;
 
-    public UpbitTickerHandler(BitcoinRepository bitcoinRepository, EthereumRepository ethereumRepository, TicketService ticketService) {
+    public UpbitTickerHandler(TicketService ticketService, SimpMessageSendingOperations simpMessageSendingOperations) {
+        this.simpMessageSendingOperations = simpMessageSendingOperations;
         this.snakeOM = new ObjectMapper().setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
-        this.bitcoinRepository = bitcoinRepository;
-        this.ethereumRepository = ethereumRepository;
         this.ticketService = ticketService;
     }
 
@@ -55,17 +55,21 @@ public class UpbitTickerHandler extends TextWebSocketHandler {
      * @param message 받은 메시지
      */
     @Override
-    protected void handleTextMessage(WebSocketSession session, TextMessage message) {
-        System.out.println(message.getPayload());
+    protected void handleBinaryMessage(WebSocketSession session, BinaryMessage message) throws Exception {
+        String convertedMessage = new String(message.getPayload().array(), StandardCharsets.UTF_8);
+        publish(convertedMessage);
+        TicketDto ticketDto = snakeOM.readValue(convertedMessage, TicketDto.class);
+        ticketService.process(ticketDto);
     }
 
     /**
-     * 웹소켓으로 전송할 요청 메시지를 생성합니다.
-     * 티켓 데이터, 티커 데이터, 포맷 데이터를 생성하여 리스트에 추가하고,
-     * 해당 리스트를 JSON 형식으로 변환하여 반환합니다.
+     * 받은 메시지를 토픽에 발행하는 비동기 메서드입니다.
      *
-     * @return 웹소켓으로 전송할 요청 메시지(JSON 형식)
+     * @param convertedMessage 처리된 메시지
      */
-
+    @Async
+    protected void publish(String convertedMessage) {
+        simpMessageSendingOperations.convertAndSend("/sub/ticker", convertedMessage);
+    }
 
 }

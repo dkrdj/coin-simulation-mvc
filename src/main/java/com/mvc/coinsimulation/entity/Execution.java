@@ -1,11 +1,11 @@
 package com.mvc.coinsimulation.entity;
 
 import com.mvc.coinsimulation.dto.response.ExecutionResponse;
-import com.mvc.coinsimulation.dto.response.ExecutionSSEResponse;
+import com.mvc.coinsimulation.dto.response.ExecutionSseResponse;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import lombok.*;
 import org.springframework.beans.BeanUtils;
-import jakarta.persistence.Id;
 
 import java.time.LocalDateTime;
 
@@ -33,8 +33,8 @@ public class Execution {
         return executionResponse;
     }
 
-    public ExecutionSSEResponse toSSEResponse() {
-        ExecutionSSEResponse sseResponse = new ExecutionSSEResponse();
+    public ExecutionSseResponse toSseResponse() {
+        ExecutionSseResponse sseResponse = new ExecutionSseResponse();
         BeanUtils.copyProperties(this, sseResponse);
         return sseResponse;
     }

@@ -1,15 +1,13 @@
-package com.mvc.coinsimulation.upbit;
+package com.mvc.coinsimulation.service;
 
 import com.mvc.coinsimulation.handler.UpbitOrderBookHandler;
 import com.mvc.coinsimulation.handler.UpbitTickerHandler;
 import com.mvc.coinsimulation.handler.UpbitTradeHandler;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 
 /**
@@ -21,14 +19,21 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
  */
 @Service
 @Slf4j
-@RequiredArgsConstructor
-public class WebClientInitializer {
-    private final WebSocketClient client;
+public class UpbitService {
     private final UpbitTickerHandler upbitTickerHandler;
     private final UpbitTradeHandler upbitTradeHandler;
     private final UpbitOrderBookHandler upbitOrderBookHandler;
-    @Value("${upbit.websocket.uri}")
-    private String UPBIT_WEBSOCKET_URI;
+    private final String UPBIT_WEBSOCKET_URI;
+
+    public UpbitService(UpbitTickerHandler upbitTickerHandler,
+                        UpbitTradeHandler upbitTradeHandler,
+                        UpbitOrderBookHandler upbitOrderBookHandler,
+                        @Value("${upbit.websocket.uri}") String upbitWebsocketUri) {
+        this.upbitTickerHandler = upbitTickerHandler;
+        this.upbitTradeHandler = upbitTradeHandler;
+        this.upbitOrderBookHandler = upbitOrderBookHandler;
+        UPBIT_WEBSOCKET_URI = upbitWebsocketUri;
+    }
 
     /**
      * 웹소켓 클라이언트를 초기화하고 업비트 웹소켓에 연결합니다.
@@ -36,7 +41,8 @@ public class WebClientInitializer {
      */
     @EventListener(ContextRefreshedEvent.class)
     public void upbitConnect() {
-        System.out.println(UPBIT_WEBSOCKET_URI);
         new StandardWebSocketClient().execute(upbitOrderBookHandler, UPBIT_WEBSOCKET_URI);
+        new StandardWebSocketClient().execute(upbitTickerHandler, UPBIT_WEBSOCKET_URI);
+        new StandardWebSocketClient().execute(upbitTradeHandler, UPBIT_WEBSOCKET_URI);
     }
 }

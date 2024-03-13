@@ -31,7 +31,7 @@ public class SseService {
         this.emitters.put(userId, emitter);
         return emitter;
     }
-
+    @Async
     public void sendExecution(Execution execution) throws IOException {
         SseEmitter sseEmitter = emitters.get(execution.getUserId());
         if (sseEmitter != null) {

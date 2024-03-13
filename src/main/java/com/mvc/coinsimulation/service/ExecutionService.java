@@ -22,6 +22,7 @@ public class ExecutionService {
     private final ExecutionRepository executionRepository;
     private final OrderService orderService;
     private final AssetService assetService;
+    //private final SseService sseService;
 
     public List<ExecutionResponse> getExecutions(Long userId) {
         return executionRepository.findTop10ByUserId(userId).stream()
@@ -35,15 +36,16 @@ public class ExecutionService {
         List<Asset> assets = assetService.getAssets(orders, trade);
         for (Order order : orders) {
             Double executeAmount = orderService.updateOrder(trade, order);
-            this.insert(trade, order, executeAmount);
+            Execution execution = this.insert(trade, order, executeAmount);
+            //sseService.sendExecution(execution);
         }
         //작성중인 코드
 
     }
 
     @Transactional
-    public void insert(Trade trade, Order order, Double executeAmount) {
-        executionRepository.save(Execution.builder()
+    public Execution insert(Trade trade, Order order, Double executeAmount) {
+        Execution execution = Execution.builder()
                 .price(order.getPrice())
                 .userId(order.getUserId())
                 .gubun(order.getGubun())
@@ -52,7 +54,9 @@ public class ExecutionService {
                 .totalPrice(order.getPrice() * executeAmount)
                 .dateTime(LocalDateTime.now())
                 .sequentialId(trade.getSequentialId())
-                .build());
+                .build();
+        executionRepository.save(execution);
+        return execution
     }
 
     @Transactional

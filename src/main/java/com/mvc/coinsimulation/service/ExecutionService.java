@@ -22,7 +22,7 @@ public class ExecutionService {
     private final ExecutionRepository executionRepository;
     private final OrderService orderService;
     private final AssetService assetService;
-    //private final SseService sseService;
+    private final SseService sseService;
 
     public List<ExecutionResponse> getExecutions(Long userId) {
         return executionRepository.findTop10ByUserId(userId).stream()
@@ -37,9 +37,9 @@ public class ExecutionService {
         for (Order order : orders) {
             Double executeAmount = orderService.updateOrder(trade, order);
             Execution execution = this.insert(trade, order, executeAmount);
-            //sseService.sendExecution(execution);
+            sseService.sendExecution(execution);
         }
-        //작성중인 코드
+        //작성중인 코드 asset 어카냐...
 
     }
 
@@ -56,7 +56,7 @@ public class ExecutionService {
                 .sequentialId(trade.getSequentialId())
                 .build();
         executionRepository.save(execution);
-        return execution
+        return execution;
     }
 
     @Transactional

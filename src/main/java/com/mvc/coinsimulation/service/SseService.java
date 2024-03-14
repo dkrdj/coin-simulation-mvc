@@ -1,7 +1,9 @@
 package com.mvc.coinsimulation.service;
 
 import com.mvc.coinsimulation.entity.Execution;
+import com.mvc.coinsimulation.exception.SseIOException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -31,11 +33,16 @@ public class SseService {
         this.emitters.put(userId, emitter);
         return emitter;
     }
+
     @Async
-    public void sendExecution(Execution execution) throws IOException {
+    public void sendExecution(Execution execution) {
         SseEmitter sseEmitter = emitters.get(execution.getUserId());
         if (sseEmitter != null) {
-            sseEmitter.send(execution.toSseResponse());
+            try {
+                sseEmitter.send(execution.toSseResponse());
+            } catch (IOException e) {
+                throw new SseIOException();
+            }
         }
     }
 }

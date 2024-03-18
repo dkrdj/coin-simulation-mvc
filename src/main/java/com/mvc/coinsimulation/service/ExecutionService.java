@@ -32,7 +32,7 @@ public class ExecutionService {
 
     @Transactional
     public void executeAsk(Trade trade) {
-        List<Order> orders = orderService.getOrders(trade);
+        List<Order> orders = orderService.getOrdersForAsk(trade);
         List<Asset> assets = assetService.getAssets(orders, trade);
         Map<Long, Asset> assetMap = new HashMap<>();
         for(Asset asset : assets){
@@ -42,7 +42,7 @@ public class ExecutionService {
             Double executeAmount = orderService.updateOrder(trade, order);
             Execution execution = this.insert(trade, order, executeAmount);
             Asset asset = assetMap.get(order.getUserId());
-            assetService.modifyAsset(asset, executeAmount);
+            assetService.modifyAssetForAsk(asset, executeAmount);
             sseService.sendExecution(execution);
         }
 

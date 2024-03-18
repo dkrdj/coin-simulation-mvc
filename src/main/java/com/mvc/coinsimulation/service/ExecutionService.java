@@ -31,7 +31,7 @@ public class ExecutionService {
     }
 
     @Transactional
-    public void executeAsk(Trade trade) {
+    public void executeForAsk(Trade trade) {
         List<Order> orders = orderService.getOrdersForAsk(trade);
         List<Asset> assets = assetService.getAssets(orders, trade);
         Map<Long, Asset> assetMap = new HashMap<>();

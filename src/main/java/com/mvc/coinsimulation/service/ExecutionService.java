@@ -34,12 +34,17 @@ public class ExecutionService {
     public void executeAsk(Trade trade) {
         List<Order> orders = orderService.getOrders(trade);
         List<Asset> assets = assetService.getAssets(orders, trade);
+        Map<Long, Asset> assetMap = new HashMap<>();
+        for(Asset asset : assets){
+            assetMap.put(asset.getUserId(), asset);
+        }
         for (Order order : orders) {
             Double executeAmount = orderService.updateOrder(trade, order);
             Execution execution = this.insert(trade, order, executeAmount);
+            Asset asset = assetMap.get(order.getUserId());
+            assetService.modifyAsset(asset, executeAmount);
             sseService.sendExecution(execution);
         }
-        //작성중인 코드 asset 어카냐...
 
     }
 

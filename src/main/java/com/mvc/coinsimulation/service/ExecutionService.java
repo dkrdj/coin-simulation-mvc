@@ -12,7 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -34,6 +36,10 @@ public class ExecutionService {
     public void executeAsk(Trade trade) {
         List<Order> orders = orderService.getOrders(trade);
         List<Asset> assets = assetService.getAssets(orders, trade);
+        Map<Long, Asset> assetMap = new HashMap<>();
+        for (Asset asset : assets) {
+            assetMap.put(asset.getUserId(), asset);
+        }
         for (Order order : orders) {
             Double executeAmount = orderService.updateOrder(trade, order);
             Execution execution = this.insert(trade, order, executeAmount);

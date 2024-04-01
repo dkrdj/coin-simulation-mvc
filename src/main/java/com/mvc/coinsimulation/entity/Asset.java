@@ -5,7 +5,7 @@ import jakarta.persistence.Id;
 import lombok.*;
 
 @Getter
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor
 @Builder
 @ToString

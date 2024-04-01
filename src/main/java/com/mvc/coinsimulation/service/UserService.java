@@ -1,8 +1,12 @@
 package com.mvc.coinsimulation.service;
 
+import com.mvc.coinsimulation.dto.request.OrderRequest;
 import com.mvc.coinsimulation.dto.request.UserInfoChangeRequest;
 import com.mvc.coinsimulation.dto.response.UserResponse;
+import com.mvc.coinsimulation.entity.Order;
 import com.mvc.coinsimulation.entity.User;
+import com.mvc.coinsimulation.exception.NoUserException;
+import com.mvc.coinsimulation.exception.NotEnoughCashException;
 import com.mvc.coinsimulation.repository.postgres.UserRepository;
 import com.mvc.coinsimulation.util.S3Util;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +32,23 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final S3Util s3Util;
+
+    @Transactional
+    public void updateUserCash(Order order) {
+        User user = userRepository.findByIdForUpdate(order.getUserId()).orElseThrow(NoUserException::new);
+        user.setCash(user.getCash() + order.getAmount() * order.getPrice());
+    }
+
+    @Transactional
+    public void updateUserCash(Long userId, OrderRequest orderRequest) {
+        User user = userRepository.findByIdForUpdate(userId).orElseThrow(NoUserException::new);
+        Double totalPrice = orderRequest.getPrice() * orderRequest.getAmount();
+        if (user.getCash() >= totalPrice) {
+            user.setCash(user.getCash() - totalPrice);
+        } else {
+            throw new NotEnoughCashException();
+        }
+    }
 
     /**
      * 특정 사용자의 정보를 조회하는 메서드

@@ -34,7 +34,7 @@ public class ExecutionService {
 
     @Transactional
     public void executeAsk(Trade trade) {
-        List<Order> orders = orderService.getOrders(trade);
+        List<Order> orders = orderService.getAskOrders(trade);
         List<Asset> assets = assetService.getAssets(orders, trade);
         Map<Long, Asset> assetMap = new HashMap<>();
         for (Asset asset : assets) {
@@ -43,9 +43,10 @@ public class ExecutionService {
         for (Order order : orders) {
             Double executeAmount = orderService.updateOrder(trade, order);
             Execution execution = this.insert(trade, order, executeAmount);
+            Asset asset = assetMap.get(execution.getUserId());
+            assetService.updateAskAsset(asset, execution);
             sseService.sendExecution(execution);
         }
-        //작성중인 코드 asset 어카냐...
 
     }
 
@@ -67,6 +68,18 @@ public class ExecutionService {
 
     @Transactional
     public void executeBid(Trade trade) {
-
+        List<Order> orders = orderService.getBidOrders(trade);
+        List<Asset> assets = assetService.getAssets(orders, trade);
+        Map<Long, Asset> assetMap = new HashMap<>();
+        for (Asset asset : assets) {
+            assetMap.put(asset.getUserId(), asset);
+        }
+        for (Order order : orders) {
+            Double executeAmount = orderService.updateOrder(trade, order);
+            Execution execution = this.insert(trade, order, executeAmount);
+            Asset asset = assetMap.get(execution.getUserId());
+            assetService.updateBidAsset(asset, execution);
+            sseService.sendExecution(execution);
+        }
     }
 }

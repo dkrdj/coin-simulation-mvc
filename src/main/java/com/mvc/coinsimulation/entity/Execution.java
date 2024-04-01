@@ -2,6 +2,7 @@ package com.mvc.coinsimulation.entity;
 
 import com.mvc.coinsimulation.dto.response.ExecutionResponse;
 import com.mvc.coinsimulation.dto.response.ExecutionSseResponse;
+import com.mvc.coinsimulation.enums.Gubun;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.*;
@@ -11,7 +12,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @ToString
 @Entity
@@ -19,7 +20,7 @@ public class Execution {
     @Id
     private Long id;
     private Long userId;
-    private String gubun;
+    private Gubun gubun;
     private Double amount;
     private String code;
     private Double price;

@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 
 
 @NoArgsConstructor
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @ToString
 @Document
 @Getter

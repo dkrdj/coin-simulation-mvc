@@ -1,13 +1,16 @@
 package com.mvc.coinsimulation.service;
 
 import com.mvc.coinsimulation.dto.common.Trade;
+import com.mvc.coinsimulation.dto.request.OrderRequest;
 import com.mvc.coinsimulation.dto.response.AssetResponse;
 import com.mvc.coinsimulation.dto.response.UserResponse;
 import com.mvc.coinsimulation.entity.Asset;
+import com.mvc.coinsimulation.entity.Execution;
 import com.mvc.coinsimulation.entity.Order;
 import com.mvc.coinsimulation.entity.User;
 import com.mvc.coinsimulation.enums.CoinConstant;
 import com.mvc.coinsimulation.exception.CashOverException;
+import com.mvc.coinsimulation.exception.NotEnoughCoinException;
 import com.mvc.coinsimulation.exception.OrderExistsException;
 import com.mvc.coinsimulation.repository.postgres.AssetRepository;
 import com.mvc.coinsimulation.repository.postgres.OrderRepository;
@@ -57,7 +60,7 @@ public class AssetService {
 
     public List<Asset> getAssets(List<Order> orders, Trade trade) {
         List<Long> userIds = orders.stream().map(order -> order.getUserId()).collect(Collectors.toList());
-        return assetRepository.findByUserIdAndCode(userIds, trade.getCode());
+        return assetRepository.findByUserIdListAndCode(userIds, trade.getCode());
     }
 
     /**
@@ -100,4 +103,58 @@ public class AssetService {
                 .profile(user.getProfile())
                 .build();
     }
+
+    @Transactional
+    public Asset updateAsset(Long userId, OrderRequest orderRequest) {
+        Asset asset = assetRepository.findByUserIdAndCode(userId, orderRequest.getCode()).orElseThrow(NotEnoughCoinException::new);
+        if (asset.getAmount() >= orderRequest.getAmount()) {
+            asset.setAmount(asset.getAmount() - orderRequest.getAmount());
+        } else {
+            throw new NotEnoughCoinException();
+        }
+        return asset;
+    }
+
+    @Transactional
+    public Asset updateAsset(Order order) {
+        Asset asset = assetRepository.findByUserIdAndCode(order.getUserId(), order.getCode())
+                .orElse(Asset.builder()
+                        .amount(0d)
+                        .averagePrice(0d)
+                        .code(order.getCode())
+                        .userId(order.getUserId())
+                        .build());
+        asset.setAveragePrice(calculateAveragePrice(asset, order));
+        asset.setAmount(asset.getAmount() + order.getAmount());
+        return asset;
+    }
+
+    @Transactional
+    public void updateAskAsset(Asset asset, Execution execution) {
+        if (asset == null) {
+            asset = Asset.builder()
+                    .amount(0d)
+                    .averagePrice(0d)
+                    .code(execution.getCode())
+                    .userId(execution.getUserId())
+                    .build();
+            asset = assetRepository.save(asset);
+        }
+        asset.setAveragePrice(calculateAveragePrice(asset, execution));
+        asset.setAmount(asset.getAmount() + execution.getAmount());
+    }
+
+    @Transactional
+    public void updateBidAsset(Asset asset, Execution execution) {
+        asset.setAmount(asset.getAmount() - execution.getAmount());
+    }
+
+    private Double calculateAveragePrice(Asset asset, Execution execution) {
+        return (asset.getAmount() * asset.getAveragePrice() + execution.getTotalPrice()) / (asset.getAmount() + execution.getAmount());
+    }
+
+    private Double calculateAveragePrice(Asset asset, Order order) {
+        return (asset.getAveragePrice() * asset.getAmount() + order.getPrePrice() * order.getAmount()) / (asset.getAmount() + order.getAmount());
+    }
+
 }

@@ -18,7 +18,8 @@ public enum CoinConstant {
      * 사용자의 초기 자산 값을 나타냅니다.
      * 이 값은 사용자의 자산을 초기화하는 데 사용됩니다.
      */
-    INITIAL_ASSET_VALUE(30000000);
+    INITIAL_ASSET_VALUE(30000000),
+    COIN_MIN_VALUE(1000);
     private final int value;
 
     CoinConstant(int value) {

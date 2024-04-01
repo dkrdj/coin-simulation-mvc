@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.mvc.coinsimulation.dto.common.Trade;
+import com.mvc.coinsimulation.enums.Gubun;
 import com.mvc.coinsimulation.service.ExecutionService;
 import com.mvc.coinsimulation.util.UpbitRequestUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -77,7 +78,7 @@ public class UpbitTradeHandler extends BinaryWebSocketHandler {
     @Async
     protected void processTrade(String convertedMessage) throws JsonProcessingException {
         Trade trade = snakeOM.readValue(convertedMessage, Trade.class);
-        if (trade.getAskBid().equalsIgnoreCase("ASK")) {
+        if (trade.getAskBid().equalsIgnoreCase(Gubun.ASK.getValue())) {
             executionService.executeAsk(trade);
             return;
         }

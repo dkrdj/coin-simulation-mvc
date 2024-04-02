@@ -1,6 +1,7 @@
 package com.mvc.coinsimulation.dto.common;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mvc.coinsimulation.enums.Gubun;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -35,7 +36,7 @@ public class TicketDto {
     private String tradeDate;
     private String tradeTime;
     private Long tradeTimestamp;
-    private String askBid;
+    private Gubun askBid;
     private Double accAskVolume;
     private Double accBidVolume;
     @JsonProperty("highest_52_week_price")

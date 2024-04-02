@@ -3,6 +3,7 @@ package com.mvc.coinsimulation.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.mvc.coinsimulation.dto.common.TicketDto;
+import com.mvc.coinsimulation.enums.UpbitRequestType;
 import com.mvc.coinsimulation.service.TicketService;
 import com.mvc.coinsimulation.util.UpbitRequestUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +46,7 @@ public class UpbitTickerHandler extends BinaryWebSocketHandler {
      */
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws IOException {
-        session.sendMessage(new TextMessage(UpbitRequestUtil.makeBody("ticker")));
+        session.sendMessage(new TextMessage(UpbitRequestUtil.makeBody(UpbitRequestType.TICKER)));
     }
 
     /**

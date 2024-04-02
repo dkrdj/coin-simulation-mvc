@@ -9,17 +9,20 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @Slf4j
 public class SseService {
     //key = userId, value = emitter
-    private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
+    private final Map<Long, SseEmitter> emitters;
+
+    public SseService(Map<Long, SseEmitter> emitters) {
+        this.emitters = emitters;
+    }
 
     public SseEmitter add(Long userId) throws IOException {
-        if (this.emitters.get(userId) != null) {
-            return this.emitters.get(userId);
+        if (emitters.get(userId) != null) {
+            return emitters.get(userId);
         }
 
         SseEmitter emitter = new SseEmitter(30 * 60 * 1000L); // 30분
@@ -30,19 +33,20 @@ public class SseService {
             throwable.printStackTrace();
         });
         emitter.send("SSE Connected");
-        this.emitters.put(userId, emitter);
+        emitters.put(userId, emitter);
         return emitter;
     }
 
     @Async
     public void sendExecution(Execution execution) {
         SseEmitter sseEmitter = emitters.get(execution.getUserId());
-        if (sseEmitter != null) {
-            try {
-                sseEmitter.send(execution.toSseResponse());
-            } catch (IOException e) {
-                throw new SseIOException();
-            }
+        if (sseEmitter == null) {
+            return;
+        }
+        try {
+            sseEmitter.send(execution.toSseResponse());
+        } catch (IOException e) {
+            throw new SseIOException();
         }
     }
 }

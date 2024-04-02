@@ -3,6 +3,8 @@ package com.mvc.coinsimulation.entity;
 import com.mvc.coinsimulation.dto.response.OrderResponse;
 import com.mvc.coinsimulation.enums.Gubun;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.*;
 import org.springframework.beans.BeanUtils;
@@ -17,6 +19,7 @@ import java.time.LocalDateTime;
 @Entity(name = "orders")
 public class Order {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Long userId;
     private String code;

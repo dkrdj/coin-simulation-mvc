@@ -1,6 +1,7 @@
 package com.mvc.coinsimulation.repository.postgres.custom;
 
 import com.mvc.coinsimulation.entity.Order;
+import com.mvc.coinsimulation.enums.Gubun;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.LockModeType;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +41,7 @@ public class OrderCustomRepositoryImpl implements OrderCustomRepository {
 //            "for update"
 //    )
     @Override
-    public List<Order> findOrdersForAsk(String gubun, String code, Double price) {
+    public List<Order> findOrdersForAsk(Gubun gubun, String code, Double price) {
         return query.selectFrom(order)
                 .where(order.gubun.eq(gubun))
                 .where(order.code.eq(code))
@@ -57,7 +58,7 @@ public class OrderCustomRepositoryImpl implements OrderCustomRepository {
 //            "for update"
 //    )z
     @Override
-    public List<Order> findOrdersForBid(String gubun, String code, Double price) {
+    public List<Order> findOrdersForBid(Gubun gubun, String code, Double price) {
         return query.selectFrom(order)
                 .where(order.gubun.eq(gubun))
                 .where(order.code.eq(code))

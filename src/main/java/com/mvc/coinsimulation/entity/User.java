@@ -2,6 +2,8 @@ package com.mvc.coinsimulation.entity;
 
 import com.mvc.coinsimulation.dto.response.UserResponse;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.*;
 import org.springframework.beans.BeanUtils;
@@ -15,6 +17,7 @@ import java.io.Serializable;
 @Entity(name = "users")
 public class User implements Serializable {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Setter
     private String nickname;

@@ -1,6 +1,7 @@
 package com.mvc.coinsimulation.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.mvc.coinsimulation.enums.Gubun;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -9,7 +10,7 @@ import java.time.LocalDateTime;
 public class OrderResponse {
     private Long id;
     private String code;
-    private String gubun;
+    private Gubun gubun;
     private Double price;
     private Double amount;
     @JsonFormat(pattern = "yyyy-MM-dd kk:mm:ss")

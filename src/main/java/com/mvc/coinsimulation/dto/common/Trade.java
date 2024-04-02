@@ -1,5 +1,6 @@
 package com.mvc.coinsimulation.dto.common;
 
+import com.mvc.coinsimulation.enums.Gubun;
 import lombok.Data;
 
 @Data
@@ -8,7 +9,7 @@ public class Trade {
     private String code;
     private Double tradePrice;
     private Double tradeVolume;
-    private String askBid;
+    private Gubun askBid;
     private Double prevClosingPrice;
     private String change;
     private Double changePrice;

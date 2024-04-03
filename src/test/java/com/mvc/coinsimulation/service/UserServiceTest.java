@@ -41,7 +41,7 @@ class UserServiceTest {
                 .id(userId)
                 .nickname("test1")
                 .role("USER")
-                .profile("profile")
+                .profile("profile1")
                 .providerId(1L)
                 .cash(20000000d)
                 .build();
@@ -54,39 +54,43 @@ class UserServiceTest {
     }
 
     @Test
-    void updateUserCash_order_noUser() {
+    void updateUserCash_order() {
         //given
-        Order order = Order.builder()
-                .userId(2L)
-                .build();
-
-        //when then
-        assertThrows(NoUserException.class, () -> userService.updateUserCash(order));
-    }
-
-    @Test
-    void updateUserCash_order_checkCash() {
-        //given
-        Order order = Order.builder()
+        Order order1 = Order.builder()
                 .userId(1L)
                 .amount(1d)
                 .price(100000d)
                 .build();
+        Order order2 = Order.builder()
+                .userId(2L)
+                .build();
         User user = userRepository.findById(1L).get();
-
+        
         //when
-        userService.updateUserCash(order);
+        userService.updateUserCash(order1);
 
         //then
+        assertThrows(NoUserException.class, () -> userService.updateUserCash(order2));
         assertEquals(20000000d + 1d * 100000d, user.getCash());
     }
 
     @Test
-    void testUpdateUserCash() {
+    void updateUserCash_orderRequest() {
+        
     }
 
     @Test
     void getUserInfo() {
+        //given
+        
+        //when
+        UserResponse userResponse = userService.getUserInfo(1L);
+
+        //then
+        assertThrows(NoUserException.class, () -> userService.getUserInfo(2L));
+        assertEquals(userResponse.getNickname(), "test1");
+        assertEquals(userResponse.getProfile(), "profile1");
+        assertEquals(userResponse.getCash(), 20000000d);
     }
 
     @Test

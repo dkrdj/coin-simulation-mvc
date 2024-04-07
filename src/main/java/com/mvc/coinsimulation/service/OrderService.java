@@ -30,18 +30,17 @@ public class OrderService {
     @Transactional
     public OrderResponse buyOrder(Long userId, OrderRequest orderRequest) {
         userService.updateUserCash(userId, orderRequest);
-        return this.insertOrder(userId, orderRequest, Gubun.ASK).toResponse();
+        return insertOrder(userId, orderRequest, Gubun.ASK).toResponse();
     }
 
     @Transactional
     public OrderResponse sellOrder(Long userId, OrderRequest orderRequest) {
         Asset asset = assetService.updateAsset(userId, orderRequest);
-        return this.insertOrder(userId, orderRequest, Gubun.BID, asset.getAveragePrice()).toResponse();
+        return insertOrder(userId, orderRequest, Gubun.BID, asset.getAveragePrice()).toResponse();
     }
 
-    @Transactional
-    public Order insertOrder(Long userId, OrderRequest orderRequest, Gubun gubun, Double prePrice) {
-        return Order.builder()
+    private Order insertOrder(Long userId, OrderRequest orderRequest, Gubun gubun, Double prePrice) {
+        return orderRepository.save(Order.builder()
                 .amount(orderRequest.getAmount())
                 .code(orderRequest.getCode())
                 .dateTime(LocalDateTime.now())
@@ -49,19 +48,18 @@ public class OrderService {
                 .price(orderRequest.getPrice())
                 .userId(userId)
                 .prePrice(prePrice)
-                .build();
+                .build());
     }
 
-    @Transactional
-    public Order insertOrder(Long userId, OrderRequest orderRequest, Gubun gubun) {
-        return Order.builder()
+    private Order insertOrder(Long userId, OrderRequest orderRequest, Gubun gubun) {
+        return orderRepository.save(Order.builder()
                 .amount(orderRequest.getAmount())
                 .code(orderRequest.getCode())
                 .dateTime(LocalDateTime.now())
                 .gubun(gubun)
                 .price(orderRequest.getPrice())
                 .userId(userId)
-                .build();
+                .build());
     }
 
     @Transactional
@@ -75,21 +73,14 @@ public class OrderService {
         orderRepository.deleteById(orderId);
     }
 
-
-    public List<Order> getAskOrders(Trade trade) {
-        return orderRepository.findOrdersForAsk(trade.getAskBid(), trade.getCode(), trade.getTradePrice());
-    }
-
-    public List<Order> getBidOrders(Trade trade) {
-        return orderRepository.findOrdersForBid(trade.getAskBid(), trade.getCode(), trade.getTradePrice());
-    }
-
     @Transactional
     public Double updateOrder(Trade trade, Order order) {
         Double restAmount = order.getAmount();
         Double executeAmount = Math.min(trade.getTradeVolume(), restAmount);
         if (executeAmount.equals(restAmount)) {
             orderRepository.deleteById(order.getId());
+        } else {
+            order.setAmount(restAmount - executeAmount);
         }
         return executeAmount;
     }

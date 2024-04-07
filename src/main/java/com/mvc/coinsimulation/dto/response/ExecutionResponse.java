@@ -11,6 +11,7 @@ public class ExecutionResponse {
     private Long id;
     private Gubun gubun;
     private Double amount;
+    private String code;
     private Double price;
     private Double totalPrice;
     @JsonFormat(pattern = "yyyy-MM-dd kk:mm:ss")

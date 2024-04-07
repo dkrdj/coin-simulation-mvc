@@ -45,7 +45,12 @@ public class StarService {
      */
     @Transactional
     public StarResponse setStar(Long userId, String code) {
-        Star star = starRepository.save(Star.builder().userId(userId).code(code).build());
+        Star star = starRepository.save(
+                Star.builder()
+                        .userId(userId)
+                        .code(code)
+                        .build()
+        );
         return star.toResponse();
     }
 

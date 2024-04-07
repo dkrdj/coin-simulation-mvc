@@ -1,5 +1,7 @@
 package com.mvc.coinsimulation.service;
 
+import com.mvc.coinsimulation.dto.request.OrderRequest;
+import com.mvc.coinsimulation.dto.request.UserInfoChangeRequest;
 import com.mvc.coinsimulation.dto.response.UserResponse;
 import com.mvc.coinsimulation.entity.Order;
 import com.mvc.coinsimulation.entity.User;
@@ -7,8 +9,10 @@ import com.mvc.coinsimulation.exception.NoUserException;
 import com.mvc.coinsimulation.repository.postgres.UserRepository;
 import com.mvc.coinsimulation.util.S3Util;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -19,6 +23,8 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
@@ -26,16 +32,16 @@ import static org.mockito.Mockito.when;
 class UserServiceTest {
 
     @Mock
-    UserRepository userRepository;
+    private UserRepository userRepository;
 
     @Mock
-    S3Util s3Util;
+    private S3Util s3Util;
 
-    UserService userService;
+    @InjectMocks
+    private UserService userService;
 
     @BeforeEach
     void beforeEach() {
-        userService = new UserService(userRepository, s3Util);
         Long userId = 1L;
         User user = User.builder()
                 .id(userId)
@@ -54,6 +60,7 @@ class UserServiceTest {
     }
 
     @Test
+    @DisplayName("매도 주문 체결로 인한 유저 현금 증가 테스트")
     void updateUserCash_order() {
         //given
         Order order1 = Order.builder()
@@ -65,24 +72,36 @@ class UserServiceTest {
                 .userId(2L)
                 .build();
         User user = userRepository.findById(1L).get();
-        
+
         //when
         userService.updateUserCash(order1);
 
         //then
         assertThrows(NoUserException.class, () -> userService.updateUserCash(order2));
-        assertEquals(20000000d + 1d * 100000d, user.getCash());
+        assertEquals(20100000d, user.getCash());
     }
 
     @Test
+    @DisplayName("매수 주문 신청으로 인한 유저 현금 감소 테스트")
     void updateUserCash_orderRequest() {
-        
+        //given
+        OrderRequest orderRequest = new OrderRequest("KRW-BTC", 2000000d, 1.2d);
+        User user = userRepository.findById(1L).get();
+
+        //when
+        userService.updateUserCash(1L, orderRequest);
+
+        //then
+        assertEquals(17600000d, user.getCash());
+        assertThrows(NoUserException.class, () -> userService.updateUserCash(2L, orderRequest));
     }
 
     @Test
+    @DisplayName("유저 정보 조회 테스트")
     void getUserInfo() {
         //given
-        
+        //@BeforeEach에 기술
+
         //when
         UserResponse userResponse = userService.getUserInfo(1L);
 
@@ -94,16 +113,53 @@ class UserServiceTest {
     }
 
     @Test
+    @DisplayName("유저 정보 변경 테스트")
     void changeUserInfo() {
+        //given
+        String changedNickname = "changedNickname";
+        UserInfoChangeRequest userInfoChangeRequest_1 = new UserInfoChangeRequest();
+        UserInfoChangeRequest userInfoChangeRequest_2 = new UserInfoChangeRequest(changedNickname);
 
+        User user = userRepository.findById(1L).get();
+
+        //when
+        UserResponse userResponse_1 = userService.changeUserInfo(1L, userInfoChangeRequest_1);
+
+        //then
+        assertEquals(user.getNickname(), userResponse_1.getNickname());
+        assertEquals(user.getCash(), userResponse_1.getCash());
+        assertEquals(user.getProfile(), userResponse_1.getProfile());
+
+        //when
+        UserResponse userResponse_2 = userService.changeUserInfo(1L, userInfoChangeRequest_2);
+
+        //then
+        assertEquals(changedNickname, userResponse_2.getNickname());
+        assertEquals(user.getCash(), userResponse_2.getCash());
+        assertEquals(user.getProfile(), userResponse_2.getProfile());
+
+        assertThrows(NoUserException.class, () -> userService.changeUserInfo(2L, userInfoChangeRequest_1));
+        assertThrows(NoUserException.class, () -> userService.changeUserInfo(2L, userInfoChangeRequest_2));
     }
 
     @Test
+    @DisplayName("유저 프로필 사진 변경 테스트")
     void changeUserProfile() throws IOException {
-//        when(s3Util.uploadFromFile(null, 1L)).thenReturn("newProfile");
+        //given
+        String newProfile = "newProfile";
+        when(s3Util.uploadFromFile(any(), anyLong())).thenReturn(newProfile);
+
+        //when
+        UserResponse userResponse = userService.changeUserProfile(1L, null);
+
+        //then
+        assertEquals(newProfile, userResponse.getProfile());
+        assertThrows(NoUserException.class, () -> userService.changeUserProfile(2L, null));
+
     }
 
     @Test
+    @DisplayName("랭킹 조회 테스트")
     void getTop10Users() {
         //given
         List<User> userList = new ArrayList<>();

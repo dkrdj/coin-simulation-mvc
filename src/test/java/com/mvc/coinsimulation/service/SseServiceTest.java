@@ -3,6 +3,7 @@ package com.mvc.coinsimulation.service;
 import com.mvc.coinsimulation.entity.Execution;
 import com.mvc.coinsimulation.enums.Gubun;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -25,6 +26,7 @@ class SseServiceTest {
     }
 
     @Test
+    @DisplayName("SSE 추가 테스트")
     void add() throws IOException {
         Long userId = 1L;
 
@@ -35,6 +37,7 @@ class SseServiceTest {
     }
 
     @Test
+    @DisplayName("체결 내역 SSE 전송 테스트")
     void sendExecution() throws IOException {
         Long userId = 1L;
         Execution execution = Execution.builder()

@@ -6,6 +6,7 @@ import com.mvc.coinsimulation.entity.Asset;
 import com.mvc.coinsimulation.entity.Execution;
 import com.mvc.coinsimulation.entity.Order;
 import com.mvc.coinsimulation.repository.postgres.ExecutionRepository;
+import com.mvc.coinsimulation.repository.postgres.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 public class ExecutionService {
     private final ExecutionRepository executionRepository;
     private final OrderService orderService;
+    private final OrderRepository orderRepository;
     private final AssetService assetService;
     private final SseService sseService;
 
@@ -34,7 +36,8 @@ public class ExecutionService {
 
     @Transactional
     public void executeAsk(Trade trade) {
-        List<Order> orders = orderService.getAskOrders(trade);
+        //부하테스트 후 비동기 메서드로 변경해서 다시 부하테스트 할 예정
+        List<Order> orders = orderRepository.findOrdersForAsk(trade.getAskBid(), trade.getCode(), trade.getTradePrice());
         List<Asset> assets = assetService.getAssets(orders, trade);
         Map<Long, Asset> assetMap = new HashMap<>();
         for (Asset asset : assets) {
@@ -42,12 +45,30 @@ public class ExecutionService {
         }
         for (Order order : orders) {
             Double executeAmount = orderService.updateOrder(trade, order);
-            Execution execution = this.insert(trade, order, executeAmount);
+            Execution execution = insert(trade, order, executeAmount);
             Asset asset = assetMap.get(execution.getUserId());
             assetService.updateAskAsset(asset, execution);
             sseService.sendExecution(execution);
         }
 
+    }
+
+    @Transactional
+    public void executeBid(Trade trade) {
+        //부하테스트 후 비동기 메서드로 변경해서 다시 부하테스트 할 예정
+        List<Order> orders = orderRepository.findOrdersForBid(trade.getAskBid(), trade.getCode(), trade.getTradePrice());
+        List<Asset> assets = assetService.getAssets(orders, trade);
+        Map<Long, Asset> assetMap = new HashMap<>();
+        for (Asset asset : assets) {
+            assetMap.put(asset.getUserId(), asset);
+        }
+        for (Order order : orders) {
+            Double executeAmount = orderService.updateOrder(trade, order);
+            Execution execution = insert(trade, order, executeAmount);
+            Asset asset = assetMap.get(execution.getUserId());
+            assetService.updateBidAsset(asset, execution);
+            sseService.sendExecution(execution);
+        }
     }
 
     @Transactional
@@ -62,24 +83,6 @@ public class ExecutionService {
                 .dateTime(LocalDateTime.now())
                 .sequentialId(trade.getSequentialId())
                 .build();
-        executionRepository.save(execution);
-        return execution;
-    }
-
-    @Transactional
-    public void executeBid(Trade trade) {
-        List<Order> orders = orderService.getBidOrders(trade);
-        List<Asset> assets = assetService.getAssets(orders, trade);
-        Map<Long, Asset> assetMap = new HashMap<>();
-        for (Asset asset : assets) {
-            assetMap.put(asset.getUserId(), asset);
-        }
-        for (Order order : orders) {
-            Double executeAmount = orderService.updateOrder(trade, order);
-            Execution execution = this.insert(trade, order, executeAmount);
-            Asset asset = assetMap.get(execution.getUserId());
-            assetService.updateBidAsset(asset, execution);
-            sseService.sendExecution(execution);
-        }
+        return executionRepository.save(execution);
     }
 }

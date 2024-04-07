@@ -57,7 +57,7 @@ public class UserService {
      * @return UserResponse
      */
     public UserResponse getUserInfo(Long userId) {
-        return userRepository.findById(userId).orElseThrow().toResponse();
+        return userRepository.findById(userId).orElseThrow(NoUserException::new).toResponse();
     }
 
     /**
@@ -69,7 +69,7 @@ public class UserService {
      */
     @Transactional
     public UserResponse changeUserInfo(Long userId, UserInfoChangeRequest request) {
-        User user = userRepository.findById(userId).orElseThrow();
+        User user = userRepository.findById(userId).orElseThrow(NoUserException::new);
         if (StringUtils.hasText(request.getNickname())) {
             user.setNickname(request.getNickname());
         }
@@ -86,7 +86,7 @@ public class UserService {
      */
     @Transactional
     public UserResponse changeUserProfile(Long userId, MultipartFile file) throws IOException {
-        User user = userRepository.findById(userId).orElseThrow();
+        User user = userRepository.findById(userId).orElseThrow(NoUserException::new);
         user.setProfile(s3Util.uploadFromFile(file, userId));
         return user.toResponse();
     }

@@ -1,7 +1,11 @@
 package com.mvc.coinsimulation.service;
 
+import com.mvc.coinsimulation.dto.common.Trade;
 import com.mvc.coinsimulation.dto.response.ExecutionResponse;
+import com.mvc.coinsimulation.entity.Asset;
 import com.mvc.coinsimulation.entity.Execution;
+import com.mvc.coinsimulation.entity.Order;
+import com.mvc.coinsimulation.entity.User;
 import com.mvc.coinsimulation.enums.Gubun;
 import com.mvc.coinsimulation.repository.postgres.ExecutionRepository;
 import com.mvc.coinsimulation.repository.postgres.OrderRepository;
@@ -18,13 +22,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ExecutionServiceTest {
     @Mock
     private ExecutionRepository executionRepository;
+    @Mock
+    private UserService userService;
     @Mock
     private OrderService orderService;
     @Mock
@@ -82,14 +89,168 @@ class ExecutionServiceTest {
     }
 
     @Test
+    @DisplayName("매수 체결 시 매도 주문 체결 테스트")
     void executeAsk() {
+        //given
+        Trade trade = new Trade();
+        trade.setTradeVolume(0.6d);
+        trade.setSequentialId(34L);
+        List<Order> orderList = new ArrayList<>();
+        List<User> userList = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            Order order = Order.builder()
+                    .amount(0.1 * i)
+                    .price((double) 2000000 * (1 + i))
+                    .userId((long) i)
+                    .gubun(Gubun.BID)
+                    .code("code")
+                    .build();
+            orderList.add(order);
+            User user = User.builder()
+                    .id((long) i)
+                    .build();
+            userList.add(user);
+
+            when(orderService.updateOrder(trade, order))
+                    .thenReturn(Math.min(trade.getTradeVolume(), Math.max(trade.getTradeVolume(), order.getAmount())));
+        }
+        when(orderRepository.findBidOrders(any(), any(), any())).thenReturn(orderList);
+        when(userService.getUsers(any())).thenReturn(userList);
+        when(executionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        //when
+        executionService.executeAsk(trade);
+
+        //then
+        verify(orderService, times(orderList.size())).updateOrder(any(), any());
+        verify(userService, times(orderList.size())).updateUserCash(any(), anyDouble());
+        verify(sseService, times(orderList.size())).sendExecution(any());
+
     }
 
     @Test
+    @DisplayName("매도 주문 체결 시 insert 메서드 테스트")
+    void executeAsk_verify_insert() {
+        //given
+        Trade trade = new Trade();
+        trade.setTradeVolume(0.6d);
+        trade.setSequentialId(34L);
+        Order order = Order.builder()
+                .amount(0.1d)
+                .price(2000000d)
+                .userId(1L)
+                .gubun(Gubun.BID)
+                .code("code")
+                .build();
+        User user = User.builder()
+                .id(1L)
+                .build();
+        List<Order> orderList = List.of(order);
+        List<User> userList = List.of(user);
+
+        Double executeAmount = 0.1d;
+
+        when(orderService.updateOrder(trade, order)).thenReturn(executeAmount);
+        when(orderRepository.findBidOrders(any(), any(), any())).thenReturn(orderList);
+        when(userService.getUsers(any())).thenReturn(userList);
+        when(executionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        //when
+        executionService.executeAsk(trade);
+
+        //then
+        verify(executionRepository).save(argThat(execution ->
+                execution.getPrice().equals(2000000d) &&
+                        execution.getUserId().equals(1L) &&
+                        execution.getGubun().equals(Gubun.BID) &&
+                        execution.getCode().equals("code") &&
+                        execution.getAmount().equals(executeAmount) &&
+                        execution.getTotalPrice().equals(200000d) &&
+                        execution.getDateTime() != null &&
+                        execution.getSequentialId().equals(34L)
+        ));
+    }
+
+    @Test
+    @DisplayName("매도 체결 시 매수 주문 체결 테스트")
     void executeBid() {
+        //given
+        Trade trade = new Trade();
+        trade.setTradeVolume(0.6d);
+        trade.setSequentialId(34L);
+        List<Order> orderList = new ArrayList<>();
+        List<Asset> assetList = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            Order order = Order.builder()
+                    .amount(0.1 * i)
+                    .price((double) 2000000 * (1 + i))
+                    .userId((long) i)
+                    .gubun(Gubun.ASK)
+                    .code("code")
+                    .build();
+            orderList.add(order);
+            Asset asset = Asset.builder()
+                    .userId((long) i)
+                    .build();
+            assetList.add(asset);
+
+            when(orderService.updateOrder(trade, order))
+                    .thenReturn(Math.min(trade.getTradeVolume(), Math.max(trade.getTradeVolume(), order.getAmount())));
+        }
+        when(orderRepository.findAskOrders(any(), any(), any())).thenReturn(orderList);
+        when(assetService.getAssets(any(), any())).thenReturn(assetList);
+        when(executionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        //when
+        executionService.executeBid(trade);
+
+        //then
+        verify(orderService, times(orderList.size())).updateOrder(any(), any());
+        verify(assetService, times(orderList.size())).updateAskAsset(any(), any());
+        verify(sseService, times(orderList.size())).sendExecution(any());
+
     }
 
     @Test
-    void insert() {
+    @DisplayName("매수 주문 체결 시 insert 메서드 테스트")
+    void executeBid_verify_insert() {
+        //given
+        Trade trade = new Trade();
+        trade.setTradeVolume(0.6d);
+        trade.setSequentialId(34L);
+        Order order = Order.builder()
+                .amount(0.1d)
+                .price(2000000d)
+                .userId(1L)
+                .gubun(Gubun.ASK)
+                .code("code")
+                .build();
+        Asset asset = Asset.builder()
+                .userId(1L)
+                .build();
+        List<Order> orderList = List.of(order);
+        List<Asset> assetList = List.of(asset);
+
+        Double executeAmount = 0.1d;
+        when(orderService.updateOrder(trade, order)).thenReturn(executeAmount);
+        when(orderRepository.findAskOrders(any(), any(), any())).thenReturn(orderList);
+        when(assetService.getAssets(any(), any())).thenReturn(assetList);
+        when(executionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        //when
+        executionService.executeBid(trade);
+
+        //then
+        verify(executionRepository).save(argThat(execution ->
+                execution.getPrice().equals(2000000d) &&
+                        execution.getUserId().equals(1L) &&
+                        execution.getGubun().equals(Gubun.ASK) &&
+                        execution.getCode().equals("code") &&
+                        execution.getAmount().equals(executeAmount) &&
+                        execution.getTotalPrice().equals(200000d) &&
+                        execution.getDateTime() != null &&
+                        execution.getSequentialId().equals(34L)
+        ));
     }
+
 }

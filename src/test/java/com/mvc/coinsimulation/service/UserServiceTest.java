@@ -53,10 +53,8 @@ class UserServiceTest {
                 .build();
         Optional<User> optionalUser = Optional.of(user);
         lenient().when(userRepository.findByIdForUpdate(1L)).thenReturn(optionalUser);
-        lenient().when(userRepository.findById(1L)).thenReturn(optionalUser);
 
         lenient().when(userRepository.findByIdForUpdate(2L)).thenReturn(Optional.empty());
-        lenient().when(userRepository.findById(2L)).thenReturn(Optional.empty());
     }
 
     @Test
@@ -71,7 +69,7 @@ class UserServiceTest {
         Order order2 = Order.builder()
                 .userId(2L)
                 .build();
-        User user = userRepository.findById(1L).get();
+        User user = userRepository.findByIdForUpdate(1L).get();
 
         //when
         userService.updateUserCash(order1);
@@ -86,7 +84,7 @@ class UserServiceTest {
     void updateUserCash_orderRequest() {
         //given
         OrderRequest orderRequest = new OrderRequest("KRW-BTC", 2000000d, 1.2d);
-        User user = userRepository.findById(1L).get();
+        User user = userRepository.findByIdForUpdate(1L).get();
 
         //when
         userService.updateUserCash(1L, orderRequest);
@@ -120,7 +118,7 @@ class UserServiceTest {
         UserInfoChangeRequest userInfoChangeRequest_1 = new UserInfoChangeRequest();
         UserInfoChangeRequest userInfoChangeRequest_2 = new UserInfoChangeRequest(changedNickname);
 
-        User user = userRepository.findById(1L).get();
+        User user = userRepository.findByIdForUpdate(1L).get();
 
         //when
         UserResponse userResponse_1 = userService.changeUserInfo(1L, userInfoChangeRequest_1);

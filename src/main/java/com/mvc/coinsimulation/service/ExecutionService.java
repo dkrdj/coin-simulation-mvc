@@ -5,6 +5,7 @@ import com.mvc.coinsimulation.dto.response.ExecutionResponse;
 import com.mvc.coinsimulation.entity.Asset;
 import com.mvc.coinsimulation.entity.Execution;
 import com.mvc.coinsimulation.entity.Order;
+import com.mvc.coinsimulation.entity.User;
 import com.mvc.coinsimulation.repository.postgres.ExecutionRepository;
 import com.mvc.coinsimulation.repository.postgres.OrderRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,9 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -27,6 +28,7 @@ public class ExecutionService {
     private final OrderRepository orderRepository;
     private final AssetService assetService;
     private final SseService sseService;
+    private final UserService userService;
 
     public List<ExecutionResponse> getExecutions(Long userId) {
         return executionRepository.findTop10ByUserId(userId).stream()
@@ -37,12 +39,24 @@ public class ExecutionService {
     @Transactional
     public void executeAsk(Trade trade) {
         //부하테스트 후 비동기 메서드로 변경해서 다시 부하테스트 할 예정
-        List<Order> orders = orderRepository.findOrdersForAsk(trade.getAskBid(), trade.getCode(), trade.getTradePrice());
-        List<Asset> assets = assetService.getAssets(orders, trade);
-        Map<Long, Asset> assetMap = new HashMap<>();
-        for (Asset asset : assets) {
-            assetMap.put(asset.getUserId(), asset);
+        List<Order> orders = orderRepository.findBidOrders(trade.getAskBid(), trade.getCode(), trade.getTradePrice());
+        List<User> users = userService.getUsers(orders);
+        Map<Long, User> userMap = users.stream().collect(Collectors.toMap(User::getId, Function.identity()));
+        for (Order order : orders) {
+            Double executeAmount = orderService.updateOrder(trade, order);
+            Execution execution = insert(trade, order, executeAmount);
+            User user = userMap.get(order.getUserId());
+            userService.updateUserCash(user, executeAmount);
+            sseService.sendExecution(execution);
         }
+    }
+
+    @Transactional
+    public void executeBid(Trade trade) {
+        //부하테스트 후 비동기 메서드로 변경해서 다시 부하테스트 할 예정
+        List<Order> orders = orderRepository.findAskOrders(trade.getAskBid(), trade.getCode(), trade.getTradePrice());
+        List<Asset> assets = assetService.getAssets(orders, trade);
+        Map<Long, Asset> assetMap = assets.stream().collect(Collectors.toMap(Asset::getUserId, Function.identity()));
         for (Order order : orders) {
             Double executeAmount = orderService.updateOrder(trade, order);
             Execution execution = insert(trade, order, executeAmount);
@@ -50,29 +64,9 @@ public class ExecutionService {
             assetService.updateAskAsset(asset, execution);
             sseService.sendExecution(execution);
         }
-
     }
 
-    @Transactional
-    public void executeBid(Trade trade) {
-        //부하테스트 후 비동기 메서드로 변경해서 다시 부하테스트 할 예정
-        List<Order> orders = orderRepository.findOrdersForBid(trade.getAskBid(), trade.getCode(), trade.getTradePrice());
-        List<Asset> assets = assetService.getAssets(orders, trade);
-        Map<Long, Asset> assetMap = new HashMap<>();
-        for (Asset asset : assets) {
-            assetMap.put(asset.getUserId(), asset);
-        }
-        for (Order order : orders) {
-            Double executeAmount = orderService.updateOrder(trade, order);
-            Execution execution = insert(trade, order, executeAmount);
-            Asset asset = assetMap.get(execution.getUserId());
-            assetService.updateBidAsset(asset, execution);
-            sseService.sendExecution(execution);
-        }
-    }
-
-    @Transactional
-    public Execution insert(Trade trade, Order order, Double executeAmount) {
+    private Execution insert(Trade trade, Order order, Double executeAmount) {
         Execution execution = Execution.builder()
                 .price(order.getPrice())
                 .userId(order.getUserId())

@@ -144,11 +144,6 @@ public class AssetService {
         asset.setAmount(asset.getAmount() + execution.getAmount());
     }
 
-    @Transactional
-    public void updateBidAsset(Asset asset, Execution execution) {
-        asset.setAmount(asset.getAmount() - execution.getAmount());
-    }
-
     private Double calculateAveragePrice(Asset asset, Execution execution) {
         return (asset.getAmount() * asset.getAveragePrice() + execution.getTotalPrice()) / (asset.getAmount() + execution.getAmount());
     }

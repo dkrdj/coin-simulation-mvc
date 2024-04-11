@@ -9,8 +9,8 @@ import java.util.Optional;
 public interface OrderCustomRepository {
     Optional<Order> findByIdAndUserIdForUpdate(Long id, Long userId);
 
-    List<Order> findOrdersForAsk(Gubun gubun, String code, Double price);
+    List<Order> findBidOrders(Gubun gubun, String code, Double price);
 
-    List<Order> findOrdersForBid(Gubun gubun, String code, Double price);
+    List<Order> findAskOrders(Gubun gubun, String code, Double price);
 
 }

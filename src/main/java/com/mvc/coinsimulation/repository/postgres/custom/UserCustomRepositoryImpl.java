@@ -6,6 +6,7 @@ import jakarta.persistence.LockModeType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import static com.mvc.coinsimulation.entity.QUser.user;
@@ -26,6 +27,14 @@ public class UserCustomRepositoryImpl implements UserCustomRepository {
                 .where(user.id.eq(id))
                 .setLockMode(LockModeType.PESSIMISTIC_WRITE)
                 .stream().findAny();
+    }
+
+    @Override
+    public List<User> findAllByIdForUpdate(List<Long> userIds) {
+        return query.selectFrom(user)
+                .where(user.id.in(userIds))
+                .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+                .stream().toList();
     }
 
 }

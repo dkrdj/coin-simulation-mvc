@@ -33,15 +33,29 @@ public class UserService {
     private final UserRepository userRepository;
     private final S3Util s3Util;
 
+    private User getUserForUpdate(Long userId) {
+        return userRepository.findByIdForUpdate(userId).orElseThrow(NoUserException::new);
+    }
+
+    @Transactional
+    public List<User> getUsers(List<Order> orders) {
+        return userRepository.findAllByIdForUpdate(orders.stream().map(Order::getUserId).collect(Collectors.toList()));
+    }
+
+    @Transactional
+    public void updateUserCash(User user, Double executeAmount) {
+        user.setCash(user.getCash() + executeAmount);
+    }
+
     @Transactional
     public void updateUserCash(Order order) {
-        User user = userRepository.findByIdForUpdate(order.getUserId()).orElseThrow(NoUserException::new);
+        User user = getUserForUpdate(order.getUserId());
         user.setCash(user.getCash() + order.getAmount() * order.getPrice());
     }
 
     @Transactional
     public void updateUserCash(Long userId, OrderRequest orderRequest) {
-        User user = userRepository.findByIdForUpdate(userId).orElseThrow(NoUserException::new);
+        User user = getUserForUpdate(userId);
         Double totalPrice = orderRequest.getPrice() * orderRequest.getAmount();
         if (user.getCash() >= totalPrice) {
             user.setCash(user.getCash() - totalPrice);
@@ -57,7 +71,7 @@ public class UserService {
      * @return UserResponse
      */
     public UserResponse getUserInfo(Long userId) {
-        return userRepository.findById(userId).orElseThrow(NoUserException::new).toResponse();
+        return getUserForUpdate(userId).toResponse();
     }
 
     /**
@@ -69,7 +83,7 @@ public class UserService {
      */
     @Transactional
     public UserResponse changeUserInfo(Long userId, UserInfoChangeRequest request) {
-        User user = userRepository.findById(userId).orElseThrow(NoUserException::new);
+        User user = getUserForUpdate(userId);
         if (StringUtils.hasText(request.getNickname())) {
             user.setNickname(request.getNickname());
         }
@@ -86,7 +100,7 @@ public class UserService {
      */
     @Transactional
     public UserResponse changeUserProfile(Long userId, MultipartFile file) throws IOException {
-        User user = userRepository.findById(userId).orElseThrow(NoUserException::new);
+        User user = getUserForUpdate(userId);
         user.setProfile(s3Util.uploadFromFile(file, userId));
         return user.toResponse();
     }
@@ -98,7 +112,7 @@ public class UserService {
      */
     public List<UserResponse> getTop10Users() {
         return userRepository.findTop10ByOrderByCashDesc().stream()
-                .map(user -> user.toResponse())
+                .map(User::toResponse)
                 .collect(Collectors.toList());
     }
 }

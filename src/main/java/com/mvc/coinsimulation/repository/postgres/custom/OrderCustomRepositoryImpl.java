@@ -41,7 +41,7 @@ public class OrderCustomRepositoryImpl implements OrderCustomRepository {
 //            "for update"
 //    )
     @Override
-    public List<Order> findOrdersForAsk(Gubun gubun, String code, Double price) {
+    public List<Order> findAskOrders(Gubun gubun, String code, Double price) {
         return query.selectFrom(order)
                 .where(order.gubun.eq(gubun))
                 .where(order.code.eq(code))
@@ -58,7 +58,7 @@ public class OrderCustomRepositoryImpl implements OrderCustomRepository {
 //            "for update"
 //    )z
     @Override
-    public List<Order> findOrdersForBid(Gubun gubun, String code, Double price) {
+    public List<Order> findBidOrders(Gubun gubun, String code, Double price) {
         return query.selectFrom(order)
                 .where(order.gubun.eq(gubun))
                 .where(order.code.eq(code))

@@ -9,7 +9,6 @@ import com.mvc.coinsimulation.entity.User;
 import com.mvc.coinsimulation.enums.Gubun;
 import com.mvc.coinsimulation.repository.postgres.ExecutionRepository;
 import com.mvc.coinsimulation.repository.postgres.OrderRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,10 +41,6 @@ class ExecutionServiceTest {
     private SseService sseService;
     @InjectMocks
     private ExecutionService executionService;
-
-    @BeforeEach
-    void setUp() {
-    }
 
     @Test
     @DisplayName("체결 내역 조회 테스트")
@@ -206,7 +201,7 @@ class ExecutionServiceTest {
 
         //then
         verify(orderService, times(orderList.size())).updateOrder(any(), any());
-        verify(assetService, times(orderList.size())).updateAskAsset(any(), any());
+        verify(assetService, times(orderList.size())).updateAssetForExecution(any(), any());
         verify(sseService, times(orderList.size())).sendExecution(any());
 
     }

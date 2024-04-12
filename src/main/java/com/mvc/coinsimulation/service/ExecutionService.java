@@ -61,7 +61,7 @@ public class ExecutionService {
             Double executeAmount = orderService.updateOrder(trade, order);
             Execution execution = insert(trade, order, executeAmount);
             Asset asset = assetMap.get(execution.getUserId());
-            assetService.updateAskAsset(asset, execution);
+            assetService.updateAssetForExecution(asset, execution);
             sseService.sendExecution(execution);
         }
     }

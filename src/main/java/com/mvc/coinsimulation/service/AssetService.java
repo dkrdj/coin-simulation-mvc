@@ -10,6 +10,7 @@ import com.mvc.coinsimulation.entity.Order;
 import com.mvc.coinsimulation.entity.User;
 import com.mvc.coinsimulation.enums.CoinConstant;
 import com.mvc.coinsimulation.exception.CashOverException;
+import com.mvc.coinsimulation.exception.NoUserException;
 import com.mvc.coinsimulation.exception.NotEnoughCoinException;
 import com.mvc.coinsimulation.exception.OrderExistsException;
 import com.mvc.coinsimulation.repository.postgres.AssetRepository;
@@ -59,7 +60,7 @@ public class AssetService {
     }
 
     public List<Asset> getAssets(List<Order> orders, Trade trade) {
-        List<Long> userIds = orders.stream().map(order -> order.getUserId()).collect(Collectors.toList());
+        List<Long> userIds = orders.stream().map(Order::getUserId).collect(Collectors.toList());
         return assetRepository.findByUserIdListAndCode(userIds, trade.getCode());
     }
 
@@ -86,7 +87,7 @@ public class AssetService {
                 v -> v + ticketService.getCurrentPrice(asset.getCode()) * asset.getAmount()));
 
         // 유저의 현금 자산도 합산합니다.
-        User user = userRepository.findById(userId).orElseThrow();
+        User user = userRepository.findById(userId).orElseThrow(NoUserException::new);
         totalAsset.updateAndGet(total -> total + user.getCash());
 
         // 자산 초기화 임계값을 초과하는지 확인하고, 초과할 경우 예외를 발생시킵니다.
@@ -105,8 +106,9 @@ public class AssetService {
     }
 
     @Transactional
-    public Asset updateAsset(Long userId, OrderRequest orderRequest) {
-        Asset asset = assetRepository.findByUserIdAndCode(userId, orderRequest.getCode()).orElseThrow(NotEnoughCoinException::new);
+    public Asset updateAssetForBidOrder(Long userId, OrderRequest orderRequest) {
+        Asset asset = assetRepository.findByUserIdAndCode(userId, orderRequest.getCode())
+                .orElseThrow(NotEnoughCoinException::new);
         if (asset.getAmount() >= orderRequest.getAmount()) {
             asset.setAmount(asset.getAmount() - orderRequest.getAmount());
         } else {
@@ -116,7 +118,7 @@ public class AssetService {
     }
 
     @Transactional
-    public Asset updateAsset(Order order) {
+    public Asset updateAssetForBidOrderCancel(Order order) {
         Asset asset = assetRepository.findByUserIdAndCode(order.getUserId(), order.getCode())
                 .orElse(Asset.builder()
                         .amount(0d)
@@ -130,7 +132,7 @@ public class AssetService {
     }
 
     @Transactional
-    public void updateAskAsset(Asset asset, Execution execution) {
+    public void updateAssetForExecution(Asset asset, Execution execution) {
         if (asset == null) {
             asset = Asset.builder()
                     .amount(0d)

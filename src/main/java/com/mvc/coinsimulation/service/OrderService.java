@@ -35,7 +35,7 @@ public class OrderService {
 
     @Transactional
     public OrderResponse sellOrder(Long userId, OrderRequest orderRequest) {
-        Asset asset = assetService.updateAsset(userId, orderRequest);
+        Asset asset = assetService.updateAssetForBidOrder(userId, orderRequest);
         return insertOrder(userId, orderRequest, Gubun.BID, asset.getAveragePrice()).toResponse();
     }
 
@@ -67,7 +67,7 @@ public class OrderService {
         Order order = orderRepository.findByIdAndUserIdForUpdate(orderId, userId).orElseThrow(NoOrderException::new);
         switch (order.getGubun()) {
             case ASK -> userService.updateUserCash(order);
-            case BID -> assetService.updateAsset(order);
+            case BID -> assetService.updateAssetForBidOrderCancel(order);
             default -> throw new NoOrderException();
         }
         orderRepository.deleteById(orderId);

@@ -7,7 +7,7 @@ import com.mvc.coinsimulation.entity.Order;
 import com.mvc.coinsimulation.entity.User;
 import com.mvc.coinsimulation.exception.NoUserException;
 import com.mvc.coinsimulation.repository.postgres.UserRepository;
-import com.mvc.coinsimulation.util.S3Util;
+import com.mvc.coinsimulation.util.S3Utils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,7 +35,7 @@ class UserServiceTest {
     private UserRepository userRepository;
 
     @Mock
-    private S3Util s3Util;
+    private S3Utils s3Utils;
 
     @InjectMocks
     private UserService userService;
@@ -145,7 +145,7 @@ class UserServiceTest {
     void changeUserProfile() throws IOException {
         //given
         String newProfile = "newProfile";
-        when(s3Util.uploadFromFile(any(), anyLong())).thenReturn(newProfile);
+        when(s3Utils.uploadFromFile(any(), anyLong())).thenReturn(newProfile);
 
         //when
         UserResponse userResponse = userService.changeUserProfile(1L, null);

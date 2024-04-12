@@ -8,7 +8,7 @@ import com.mvc.coinsimulation.entity.User;
 import com.mvc.coinsimulation.exception.NoUserException;
 import com.mvc.coinsimulation.exception.NotEnoughCashException;
 import com.mvc.coinsimulation.repository.postgres.UserRepository;
-import com.mvc.coinsimulation.util.S3Util;
+import com.mvc.coinsimulation.util.S3Utils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final S3Util s3Util;
+    private final S3Utils s3Utils;
 
     private User getUserForUpdate(Long userId) {
         return userRepository.findByIdForUpdate(userId).orElseThrow(NoUserException::new);
@@ -101,7 +101,7 @@ public class UserService {
     @Transactional
     public UserResponse changeUserProfile(Long userId, MultipartFile file) throws IOException {
         User user = getUserForUpdate(userId);
-        user.setProfile(s3Util.uploadFromFile(file, userId));
+        user.setProfile(s3Utils.uploadFromFile(file, userId));
         return user.toResponse();
     }
 

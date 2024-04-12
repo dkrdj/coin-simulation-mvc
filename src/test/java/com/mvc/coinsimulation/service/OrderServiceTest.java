@@ -155,7 +155,7 @@ class OrderServiceTest {
         //given
         Long userId = 1L;
         doNothing().when(userService).updateUserCash(any(Order.class));
-        when(assetService.updateAsset(any(Order.class))).thenReturn(null);
+        when(assetService.updateAssetForBidOrderCancel(any(Order.class))).thenReturn(null);
         Order askOrder = Order.builder()
                 .id(1L)
                 .userId(userId)
@@ -177,8 +177,8 @@ class OrderServiceTest {
         //then
         verify(userService, times(1)).updateUserCash(askOrder);
         verify(userService, times(0)).updateUserCash(bidOrder);
-        verify(assetService, times(0)).updateAsset(askOrder);
-        verify(assetService, times(1)).updateAsset(bidOrder);
+        verify(assetService, times(0)).updateAssetForBidOrderCancel(askOrder);
+        verify(assetService, times(1)).updateAssetForBidOrderCancel(bidOrder);
 
         assertThrows(NoOrderException.class, () -> orderService.cancelOrder(1L, 3L));
     }

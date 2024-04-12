@@ -1,7 +1,7 @@
 package com.mvc.coinsimulation.handler;
 
 import com.mvc.coinsimulation.enums.UpbitRequestType;
-import com.mvc.coinsimulation.util.UpbitRequestUtil;
+import com.mvc.coinsimulation.util.UpbitUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.scheduling.annotation.Async;
@@ -43,7 +43,7 @@ public class UpbitOrderBookHandler extends BinaryWebSocketHandler {
      */
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws IOException {
-        session.sendMessage(new TextMessage(UpbitRequestUtil.makeBody(UpbitRequestType.ORDERBOOK)));
+        session.sendMessage(new TextMessage(UpbitUtils.makeBody(UpbitRequestType.ORDERBOOK)));
     }
 
     /**

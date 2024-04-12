@@ -14,7 +14,7 @@ import java.util.Collections;
 import java.util.List;
 
 @UtilityClass
-public class UpbitRequestUtil {
+public class UpbitUtils {
     private final ObjectMapper camelOM = new ObjectMapper().setPropertyNamingStrategy(PropertyNamingStrategies.LOWER_CAMEL_CASE);
 
 

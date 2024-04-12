@@ -3,7 +3,6 @@ package com.mvc.coinsimulation.util;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,12 +25,15 @@ import java.util.Optional;
  * @See None
  */
 @Component
-@RequiredArgsConstructor
-public class S3Util {
+public class S3Utils {
     private final AmazonS3Client amazonS3Client;
+    private final String bucket;
 
-    @Value("${cloud.aws.s3.bucket}")
-    private String bucket;
+    public S3Utils(AmazonS3Client amazonS3Client,
+                   @Value("${cloud.aws.s3.bucket}") String bucket) {
+        this.amazonS3Client = amazonS3Client;
+        this.bucket = bucket;
+    }
 
     /**
      * MultipartFile을 받아서 S3에 업로드하는 메서드

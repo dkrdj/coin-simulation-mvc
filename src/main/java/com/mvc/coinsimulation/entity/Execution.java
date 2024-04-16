@@ -3,10 +3,7 @@ package com.mvc.coinsimulation.entity;
 import com.mvc.coinsimulation.dto.response.ExecutionResponse;
 import com.mvc.coinsimulation.dto.response.ExecutionSseResponse;
 import com.mvc.coinsimulation.enums.Gubun;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.beans.BeanUtils;
 
@@ -23,6 +20,7 @@ public class Execution {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Long userId;
+    @Enumerated(EnumType.STRING)
     private Gubun gubun;
     private Double amount;
     private String code;

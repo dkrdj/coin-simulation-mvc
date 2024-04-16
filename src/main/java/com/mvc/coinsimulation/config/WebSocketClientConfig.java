@@ -36,7 +36,7 @@ public class WebSocketClientConfig {
     @Bean
     public ObjectMapper snakeObjectMapper() {
         return new ObjectMapper()
-                .registerModule(new JavaTimeModule()) // Java 8 시간 모듈 등록
+                .registerModule(new JavaTimeModule())
                 .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE); // Snake Case 전략 설정
     }
 }

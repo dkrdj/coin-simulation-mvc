@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 @Service
 public class ExecutionService {
     private final ExecutionRepository executionRepository;
+    private final TicketService ticketService;
     private final OrderService orderService;
     private final OrderRepository orderRepository;
     private final AssetService assetService;
@@ -38,7 +39,6 @@ public class ExecutionService {
 
     @Transactional
     public void executeAsk(Trade trade) {
-        //부하테스트 후 비동기 메서드로 변경해서 다시 부하테스트 할 예정
         List<Order> orders = orderRepository.findBidOrders(trade.getAskBid(), trade.getCode(), trade.getTradePrice());
         List<User> users = userService.getUsers(orders);
         Map<Long, User> userMap = users.stream().collect(Collectors.toMap(User::getId, Function.identity()));
@@ -46,14 +46,14 @@ public class ExecutionService {
             Double executeAmount = orderService.updateOrder(trade, order);
             Execution execution = insert(trade, order, executeAmount);
             User user = userMap.get(order.getUserId());
-            userService.updateUserCash(user, executeAmount);
+            userService.updateUserCash(user, trade.getTradePrice() * executeAmount);
             sseService.sendExecution(execution);
         }
+        System.out.println("real : " + trade.getSequentialId());
     }
 
     @Transactional
     public void executeBid(Trade trade) {
-        //부하테스트 후 비동기 메서드로 변경해서 다시 부하테스트 할 예정
         List<Order> orders = orderRepository.findAskOrders(trade.getAskBid(), trade.getCode(), trade.getTradePrice());
         List<Asset> assets = assetService.getAssets(orders, trade);
         Map<Long, Asset> assetMap = assets.stream().collect(Collectors.toMap(Asset::getUserId, Function.identity()));

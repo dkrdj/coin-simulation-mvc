@@ -2,10 +2,7 @@ package com.mvc.coinsimulation.entity;
 
 import com.mvc.coinsimulation.dto.response.OrderResponse;
 import com.mvc.coinsimulation.enums.Gubun;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.beans.BeanUtils;
 
@@ -23,6 +20,7 @@ public class Order {
     private Long id;
     private Long userId;
     private String code;
+    @Enumerated(EnumType.STRING)
     private Gubun gubun;
     private Double price;
     @Setter

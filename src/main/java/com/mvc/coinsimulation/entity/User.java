@@ -1,5 +1,6 @@
 package com.mvc.coinsimulation.entity;
 
+import com.mvc.coinsimulation.dto.common.UserDto;
 import com.mvc.coinsimulation.dto.response.UserResponse;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -8,14 +9,12 @@ import jakarta.persistence.Id;
 import lombok.*;
 import org.springframework.beans.BeanUtils;
 
-import java.io.Serializable;
-
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @Entity(name = "users")
-public class User implements Serializable {
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -33,5 +32,11 @@ public class User implements Serializable {
         UserResponse userResponse = new UserResponse();
         BeanUtils.copyProperties(this, userResponse);
         return userResponse;
+    }
+
+    public UserDto toDto() {
+        UserDto userDto = new UserDto();
+        BeanUtils.copyProperties(this, userDto);
+        return userDto;
     }
 }

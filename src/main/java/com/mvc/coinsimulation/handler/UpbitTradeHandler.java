@@ -48,6 +48,7 @@ public class UpbitTradeHandler extends BinaryWebSocketHandler {
      */
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws IOException {
+        System.out.println(UpbitUtils.makeBody(UpbitRequestType.TRADE));
         session.sendMessage(new TextMessage(UpbitUtils.makeBody(UpbitRequestType.TRADE)));
     }
 
@@ -64,6 +65,7 @@ public class UpbitTradeHandler extends BinaryWebSocketHandler {
         publish(convertedMessage);
         processTrade(convertedMessage);
     }
+
 
     /**
      * 받은 메시지를 토픽에 발행하는 비동기 메서드입니다.

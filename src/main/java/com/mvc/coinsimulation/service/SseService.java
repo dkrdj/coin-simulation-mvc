@@ -39,6 +39,7 @@ public class SseService {
 
     @Async
     public void sendExecution(Execution execution) {
+//        log.info(execution.toString());
         SseEmitter sseEmitter = emitters.get(execution.getUserId());
         if (sseEmitter == null) {
             return;

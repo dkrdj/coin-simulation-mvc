@@ -39,7 +39,7 @@ public class ExecutionService {
 
     @Transactional
     public void executeAsk(Trade trade) {
-        List<Order> orders = orderRepository.findBidOrders(trade.getAskBid(), trade.getCode(), trade.getTradePrice());
+        List<Order> orders = orderRepository.findBidOrders(trade.getCode(), trade.getTradePrice());
         List<User> users = userService.getUsers(orders);
         Map<Long, User> userMap = users.stream().collect(Collectors.toMap(User::getId, Function.identity()));
         for (Order order : orders) {
@@ -49,12 +49,12 @@ public class ExecutionService {
             userService.updateUserCash(user, trade.getTradePrice() * executeAmount);
             sseService.sendExecution(execution);
         }
-        System.out.println("real : " + trade.getSequentialId());
+//        System.out.println("real : " + trade.getSequentialId());
     }
 
     @Transactional
     public void executeBid(Trade trade) {
-        List<Order> orders = orderRepository.findAskOrders(trade.getAskBid(), trade.getCode(), trade.getTradePrice());
+        List<Order> orders = orderRepository.findAskOrders(trade.getCode(), trade.getTradePrice());
         List<Asset> assets = assetService.getAssets(orders, trade);
         Map<Long, Asset> assetMap = assets.stream().collect(Collectors.toMap(Asset::getUserId, Function.identity()));
         for (Order order : orders) {

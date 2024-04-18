@@ -69,4 +69,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .property("timestamp", Instant.now())
                 .build();
     }
+
+    @ExceptionHandler(LoginException.class)
+    public ErrorResponse LoginException(NotEnoughCashException e) {
+        return ErrorResponse.builder(e, HttpStatus.BAD_REQUEST, e.getMessage())
+                .title("LoginException")
+                .property("timestamp", Instant.now())
+                .build();
+    }
+
 }

@@ -71,7 +71,7 @@ public class UserService {
      * @return UserResponse
      */
     public UserResponse getUserInfo(Long userId) {
-        return getUserForUpdate(userId).toResponse();
+        return userRepository.findById(userId).orElseThrow(NoUserException::new).toResponse();
     }
 
     /**

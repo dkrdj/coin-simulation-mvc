@@ -2,11 +2,11 @@ package com.mvc.coinsimulation.handler;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.mvc.coinsimulation.dto.common.Trade;
 import com.mvc.coinsimulation.enums.UpbitRequestType;
 import com.mvc.coinsimulation.service.ExecutionService;
 import com.mvc.coinsimulation.util.UpbitUtils;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.scheduling.annotation.Async;
@@ -27,18 +27,13 @@ import java.nio.charset.StandardCharsets;
  * @Version 1.0.0
  */
 @Slf4j
+@RequiredArgsConstructor
 @Component
 public class UpbitTradeHandler extends BinaryWebSocketHandler {
     private final SimpMessageSendingOperations simpMessageSendingOperations;
-    private final ObjectMapper snakeOM;
+    private final ObjectMapper snakeObjectMapper;
     private final ExecutionService executionService;
 
-    public UpbitTradeHandler(SimpMessageSendingOperations simpMessageSendingOperations,
-                             ExecutionService executionService) {
-        this.simpMessageSendingOperations = simpMessageSendingOperations;
-        this.executionService = executionService;
-        this.snakeOM = new ObjectMapper().setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
-    }
 
     /**
      * 웹소켓 연결이 설정된 직후 실행되는 메서드입니다.
@@ -48,7 +43,6 @@ public class UpbitTradeHandler extends BinaryWebSocketHandler {
      */
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws IOException {
-        System.out.println(UpbitUtils.makeBody(UpbitRequestType.TRADE));
         session.sendMessage(new TextMessage(UpbitUtils.makeBody(UpbitRequestType.TRADE)));
     }
 
@@ -79,7 +73,7 @@ public class UpbitTradeHandler extends BinaryWebSocketHandler {
 
     @Async
     protected void processTrade(String convertedMessage) throws JsonProcessingException {
-        Trade trade = snakeOM.readValue(convertedMessage, Trade.class);
+        Trade trade = snakeObjectMapper.readValue(convertedMessage, Trade.class);
         switch (trade.getAskBid()) {
             case ASK -> executionService.executeAsk(trade);
             case BID -> executionService.executeBid(trade);

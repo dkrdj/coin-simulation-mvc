@@ -89,6 +89,7 @@ class ExecutionServiceTest {
         //given
         Trade trade = new Trade();
         trade.setTradeVolume(0.6d);
+        trade.setTradePrice(1000000d);
         trade.setSequentialId(34L);
         List<Order> orderList = new ArrayList<>();
         List<User> userList = new ArrayList<>();
@@ -109,7 +110,7 @@ class ExecutionServiceTest {
             when(orderService.updateOrder(trade, order))
                     .thenReturn(Math.min(trade.getTradeVolume(), Math.max(trade.getTradeVolume(), order.getAmount())));
         }
-        when(orderRepository.findBidOrders(any(), any(), any())).thenReturn(orderList);
+        when(orderRepository.findBidOrders(any(), any())).thenReturn(orderList);
         when(userService.getUsers(any())).thenReturn(userList);
         when(executionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -129,6 +130,7 @@ class ExecutionServiceTest {
         //given
         Trade trade = new Trade();
         trade.setTradeVolume(0.6d);
+        trade.setTradePrice(1000000d);
         trade.setSequentialId(34L);
         Order order = Order.builder()
                 .amount(0.1d)
@@ -146,7 +148,7 @@ class ExecutionServiceTest {
         Double executeAmount = 0.1d;
 
         when(orderService.updateOrder(trade, order)).thenReturn(executeAmount);
-        when(orderRepository.findBidOrders(any(), any(), any())).thenReturn(orderList);
+        when(orderRepository.findBidOrders(any(), any())).thenReturn(orderList);
         when(userService.getUsers(any())).thenReturn(userList);
         when(executionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -192,7 +194,7 @@ class ExecutionServiceTest {
             when(orderService.updateOrder(trade, order))
                     .thenReturn(Math.min(trade.getTradeVolume(), Math.max(trade.getTradeVolume(), order.getAmount())));
         }
-        when(orderRepository.findAskOrders(any(), any(), any())).thenReturn(orderList);
+        when(orderRepository.findAskOrders(any(), any())).thenReturn(orderList);
         when(assetService.getAssets(any(), any())).thenReturn(assetList);
         when(executionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -228,7 +230,7 @@ class ExecutionServiceTest {
 
         Double executeAmount = 0.1d;
         when(orderService.updateOrder(trade, order)).thenReturn(executeAmount);
-        when(orderRepository.findAskOrders(any(), any(), any())).thenReturn(orderList);
+        when(orderRepository.findAskOrders(any(), any())).thenReturn(orderList);
         when(assetService.getAssets(any(), any())).thenReturn(assetList);
         when(executionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 

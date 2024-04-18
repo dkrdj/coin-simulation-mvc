@@ -19,17 +19,12 @@ public class UpbitUtils {
 
 
     public String makeBody(UpbitRequestType type) throws JsonProcessingException {
-        // 티켓 데이터 생성
         TicketData ticketData = createTicketData();
-        // 티커 데이터 생성
         TickerData tickerData = createTickerData(type);
-        // 포맷 데이터 생성
         FormatData formatData = createFormatData();
 
-        // 티켓 데이터, 티커 데이터, 포맷 데이터를 리스트에 추가
         List<Object> dataList = Arrays.asList(ticketData, tickerData, formatData);
 
-        // 리스트를 JSON 형식으로 변환하여 반환
         return convertToJson(dataList);
     }
 

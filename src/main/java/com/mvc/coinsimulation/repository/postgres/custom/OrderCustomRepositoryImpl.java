@@ -41,9 +41,9 @@ public class OrderCustomRepositoryImpl implements OrderCustomRepository {
 //            "for update"
 //    )
     @Override
-    public List<Order> findAskOrders(Gubun gubun, String code, Double price) {
+    public List<Order> findAskOrders(String code, Double price) {
         return query.selectFrom(order)
-                .where(order.gubun.eq(gubun))
+                .where(order.gubun.eq(Gubun.ASK))
                 .where(order.code.eq(code))
                 .where(order.price.goe(price))
                 .setLockMode(LockModeType.PESSIMISTIC_WRITE)
@@ -58,9 +58,9 @@ public class OrderCustomRepositoryImpl implements OrderCustomRepository {
 //            "for update"
 //    )z
     @Override
-    public List<Order> findBidOrders(Gubun gubun, String code, Double price) {
+    public List<Order> findBidOrders(String code, Double price) {
         return query.selectFrom(order)
-                .where(order.gubun.eq(gubun))
+                .where(order.gubun.eq(Gubun.BID))
                 .where(order.code.eq(code))
                 .where(order.price.loe(price))
                 .setLockMode(LockModeType.PESSIMISTIC_WRITE)

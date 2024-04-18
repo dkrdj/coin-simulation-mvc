@@ -13,9 +13,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
-import java.time.LocalDate;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * AWS S3로의 파일 업로드 및 관련 유틸리티 클래스
@@ -52,14 +52,14 @@ public class S3Utils {
     /**
      * URL로부터 이미지를 다운로드하여 S3에 업로드하는 메서드
      *
-     * @param url    다운로드할 이미지의 URL
-     * @param userId 유저 PK
+     * @param url        다운로드할 이미지의 URL
+     * @param providerId 유저 OAuth2 provider ID
      * @return S3에 업로드된 파일의 URL
      * @throws IOException 파일 변환 또는 S3 업로드 중 발생한 예외
      */
-    public String uploadFromUrl(String url, Long userId) throws IOException {
+    public String uploadFromUrl(String url, Long providerId) throws IOException {
         URL profile = new URL(url);
-        String fileName = userId + "/" + Math.random() * 1000 + "_socialprofile";
+        String fileName = providerId + "/" + UUID.randomUUID() + "_social";
         String ext = url.substring(url.lastIndexOf('.') + 1);
         BufferedImage img = ImageIO.read(profile);
         File uploadFile = new File("upload/" + fileName + "." + ext);
@@ -76,11 +76,11 @@ public class S3Utils {
      * 파일을 S3에 업로드하는 메서드
      *
      * @param uploadFile 업로드할 파일
-     * @param userId     유저 PK
+     * @param providerId 유저 OAuth2 provider ID
      * @return S3에 업로드된 파일의 URL
      */
-    private String upload(File uploadFile, Long userId) {
-        String fileName = userId + "/" + Math.random() * 1000 + "_" + LocalDate.now() + uploadFile.getName();
+    private String upload(File uploadFile, Long providerId) {
+        String fileName = providerId + "/" + UUID.randomUUID() + uploadFile.getName();
         String uploadImageUrl = putS3(uploadFile, fileName);
         uploadFile.delete();
         return uploadImageUrl;

@@ -1,10 +1,12 @@
 package com.mvc.coinsimulation.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mvc.coinsimulation.repository.postgres.UserRepository;
 import com.mvc.coinsimulation.security.LoginFilter;
+import com.mvc.coinsimulation.security.SessionFilter;
+import com.mvc.coinsimulation.util.S3Utils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
@@ -17,15 +19,18 @@ import java.util.List;
 
 @Configuration
 public class SecurityConfig {
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
-            throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
-    }
+//    @Bean
+//    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+//            throws Exception {
+//        return authenticationConfiguration.getAuthenticationManager();
+//    }
 
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http,
+                                           UserRepository userRepository,
+                                           ObjectMapper snakeOM,
+                                           S3Utils s3Utils) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -33,7 +38,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(request ->
                         request.requestMatchers("/rank", "/ws/**", "/login").permitAll()
                                 .anyRequest().authenticated())
-                .addFilterAt(new LoginFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterAt(new LoginFilter(s3Utils, snakeOM, userRepository), UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(new SessionFilter(userRepository), UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 

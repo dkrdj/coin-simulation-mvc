@@ -68,7 +68,7 @@ public class UpbitTradeHandler extends BinaryWebSocketHandler {
      */
     @Async
     protected void publish(String convertedMessage) {
-        simpMessageSendingOperations.convertAndSend("/sub/orderbook", convertedMessage);
+        simpMessageSendingOperations.convertAndSend("/sub/trade", convertedMessage);
     }
 
     @Async

@@ -40,12 +40,10 @@ public class ExecutionService {
     @Transactional
     public void executeAsk(Trade trade) {
         List<Order> orders = orderRepository.findBidOrders(trade.getCode(), trade.getTradePrice());
-        List<User> users = userService.getUsers(orders);
-        Map<Long, User> userMap = users.stream().collect(Collectors.toMap(User::getId, Function.identity()));
         for (Order order : orders) {
             Double executeAmount = orderService.updateOrder(trade, order);
             Execution execution = insert(trade, order, executeAmount);
-            User user = userMap.get(order.getUserId());
+            User user = order.getUser();
             userService.updateUserCash(user, trade.getTradePrice() * executeAmount);
             sseService.sendExecution(execution);
         }
@@ -69,7 +67,7 @@ public class ExecutionService {
     private Execution insert(Trade trade, Order order, Double executeAmount) {
         Execution execution = Execution.builder()
                 .price(order.getPrice())
-                .userId(order.getUserId())
+                .userId(order.getUser().getId())
                 .gubun(order.getGubun())
                 .code(order.getCode())
                 .amount(executeAmount)

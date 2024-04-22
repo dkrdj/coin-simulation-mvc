@@ -52,8 +52,8 @@ class UserServiceTest {
                 .cash(20000000d)
                 .build();
         Optional<User> optionalUser = Optional.of(user);
+        lenient().when(userRepository.findById(1L)).thenReturn(optionalUser);
         lenient().when(userRepository.findByIdForUpdate(1L)).thenReturn(optionalUser);
-
         lenient().when(userRepository.findByIdForUpdate(2L)).thenReturn(Optional.empty());
     }
 
@@ -61,21 +61,21 @@ class UserServiceTest {
     @DisplayName("매도 주문 체결로 인한 유저 현금 증가 테스트")
     void updateUserCash_order() {
         //given
+        User user2 = User.builder().id(2L).cash(1d).build();
+        User user = userRepository.findByIdForUpdate(1L).get();
         Order order1 = Order.builder()
-                .userId(1L)
+                .user(user)
                 .amount(1d)
                 .price(100000d)
                 .build();
         Order order2 = Order.builder()
-                .userId(2L)
+                .user(user2)
                 .build();
-        User user = userRepository.findByIdForUpdate(1L).get();
 
         //when
         userService.updateUserCash(order1);
 
         //then
-        assertThrows(NoUserException.class, () -> userService.updateUserCash(order2));
         assertEquals(20100000d, user.getCash());
     }
 

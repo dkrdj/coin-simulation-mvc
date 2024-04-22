@@ -97,7 +97,7 @@ class ExecutionServiceTest {
             Order order = Order.builder()
                     .amount(0.1 * i)
                     .price((double) 2000000 * (1 + i))
-                    .userId((long) i)
+                    .user(User.builder().id((long) i).build())
                     .gubun(Gubun.BID)
                     .code("code")
                     .build();
@@ -111,7 +111,6 @@ class ExecutionServiceTest {
                     .thenReturn(Math.min(trade.getTradeVolume(), Math.max(trade.getTradeVolume(), order.getAmount())));
         }
         when(orderRepository.findBidOrders(any(), any())).thenReturn(orderList);
-        when(userService.getUsers(any())).thenReturn(userList);
         when(executionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         //when
@@ -135,7 +134,7 @@ class ExecutionServiceTest {
         Order order = Order.builder()
                 .amount(0.1d)
                 .price(2000000d)
-                .userId(1L)
+                .user(User.builder().id(1L).build())
                 .gubun(Gubun.BID)
                 .code("code")
                 .build();
@@ -149,7 +148,6 @@ class ExecutionServiceTest {
 
         when(orderService.updateOrder(trade, order)).thenReturn(executeAmount);
         when(orderRepository.findBidOrders(any(), any())).thenReturn(orderList);
-        when(userService.getUsers(any())).thenReturn(userList);
         when(executionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         //when
@@ -181,7 +179,7 @@ class ExecutionServiceTest {
             Order order = Order.builder()
                     .amount(0.1 * i)
                     .price((double) 2000000 * (1 + i))
-                    .userId((long) i)
+                    .user(User.builder().id((long) i).build())
                     .gubun(Gubun.ASK)
                     .code("code")
                     .build();
@@ -218,7 +216,7 @@ class ExecutionServiceTest {
         Order order = Order.builder()
                 .amount(0.1d)
                 .price(2000000d)
-                .userId(1L)
+                .user(User.builder().id(1L).build())
                 .gubun(Gubun.ASK)
                 .code("code")
                 .build();

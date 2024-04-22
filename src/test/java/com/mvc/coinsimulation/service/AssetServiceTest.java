@@ -80,7 +80,7 @@ class AssetServiceTest {
         //given
         List<Order> orderList = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
-            Order order = Order.builder().userId((long) i).build();
+            Order order = Order.builder().user(User.builder().id((long) i).build()).build();
             orderList.add(order);
         }
         when(assetRepository.findByUserIdListAndCode(any(), any())).thenReturn(null);
@@ -203,26 +203,26 @@ class AssetServiceTest {
     @DisplayName("매도 주문 취소 시 자산 변경 테스트")
     void updateAssetForBidOrderCancel() {
         //given
-        Long noAssetUserId = 1L;
-        Long normalUserId = 2L;
+        User noAssetUser = User.builder().id(1L).build();
+        User normalUser = User.builder().id(2L).build();
         String code = "code";
         Order noAssetUserOrder = Order.builder()
-                .userId(noAssetUserId)
+                .user(noAssetUser)
                 .prePrice(500d)
                 .amount(0.9d)
                 .code(code)
                 .build();
         Order normalUserIdOrder = Order.builder()
-                .userId(normalUserId)
+                .user(normalUser)
                 .prePrice(500d)
                 .amount(0.9d)
                 .code(code)
                 .build();
-        when(assetRepository.findByUserIdAndCode(noAssetUserId, code))
+        when(assetRepository.findByUserIdAndCode(noAssetUser.getId(), code))
                 .thenReturn(Optional.empty());
-        when(assetRepository.findByUserIdAndCode(normalUserId, code))
+        when(assetRepository.findByUserIdAndCode(normalUser.getId(), code))
                 .thenReturn(Optional.of(Asset.builder()
-                        .userId(normalUserId)
+                        .userId(normalUser.getId())
                         .code(code)
                         .amount(0.1d)
                         .averagePrice(100d)
@@ -236,12 +236,12 @@ class AssetServiceTest {
         assertEquals(code, noAssetUserAsset.getCode());
         assertEquals(500d, noAssetUserAsset.getAveragePrice());
         assertEquals(0.9d, noAssetUserAsset.getAmount());
-        assertEquals(noAssetUserId, noAssetUserAsset.getUserId());
+        assertEquals(noAssetUser.getId(), noAssetUserAsset.getUserId());
 
         assertEquals(code, normalUserAsset.getCode());
         assertEquals(460d, normalUserAsset.getAveragePrice());
         assertEquals(1d, normalUserAsset.getAmount());
-        assertEquals(normalUserId, normalUserAsset.getUserId());
+        assertEquals(normalUser.getId(), normalUserAsset.getUserId());
 
     }
 

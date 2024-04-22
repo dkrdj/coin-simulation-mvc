@@ -18,7 +18,9 @@ public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long userId;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "user_id")
+    private User user;
     private String code;
     @Enumerated(EnumType.STRING)
     private Gubun gubun;

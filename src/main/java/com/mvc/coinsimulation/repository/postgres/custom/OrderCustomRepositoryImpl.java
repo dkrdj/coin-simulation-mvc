@@ -12,8 +12,8 @@ import java.util.Optional;
 
 import static com.mvc.coinsimulation.entity.QOrder.order;
 
-@RequiredArgsConstructor
 @Repository
+@RequiredArgsConstructor
 public class OrderCustomRepositoryImpl implements OrderCustomRepository {
 
     private final JPAQueryFactory query;
@@ -28,7 +28,7 @@ public class OrderCustomRepositoryImpl implements OrderCustomRepository {
     public Optional<Order> findByIdAndUserIdForUpdate(Long id, Long userId) {
         return query.selectFrom(order)
                 .where(order.id.eq(id))
-                .where(order.userId.eq(userId))
+                .where(order.user.id.eq(userId))
                 .setLockMode(LockModeType.PESSIMISTIC_WRITE)
                 .stream().findFirst();
     }

@@ -40,8 +40,7 @@ public class UpbitService {
     }
 
     /**
-     * 웹소켓 클라이언트를 초기화하고 업비트 웹소켓에 연결합니다.
-     * 애플리케이션이 준비되면 실행합니다.
+     * 애플리케이션이 준비되면 업비트 웹소켓에 연결합니다.
      */
     @EventListener(ApplicationReadyEvent.class)
     public void upbitConnect() {

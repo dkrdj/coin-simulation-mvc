@@ -60,7 +60,7 @@ public class AssetService {
     }
 
     public List<Asset> getAssets(List<Order> orders, Trade trade) {
-        List<Long> userIds = orders.stream().map(Order::getUserId).collect(Collectors.toList());
+        List<Long> userIds = orders.stream().map(order -> order.getUser().getId()).collect(Collectors.toList());
         return assetRepository.findByUserIdListAndCode(userIds, trade.getCode());
     }
 
@@ -119,12 +119,12 @@ public class AssetService {
 
     @Transactional
     public Asset updateAssetForBidOrderCancel(Order order) {
-        Asset asset = assetRepository.findByUserIdAndCode(order.getUserId(), order.getCode())
+        Asset asset = assetRepository.findByUserIdAndCode(order.getUser().getId(), order.getCode())
                 .orElse(Asset.builder()
                         .amount(0d)
                         .averagePrice(0d)
                         .code(order.getCode())
-                        .userId(order.getUserId())
+                        .userId(order.getUser().getId())
                         .build());
         asset.setAveragePrice(calculateAveragePrice(asset, order));
         asset.setAmount(asset.getAmount() + order.getAmount());

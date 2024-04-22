@@ -38,18 +38,13 @@ public class UserService {
     }
 
     @Transactional
-    public List<User> getUsers(List<Order> orders) {
-        return userRepository.findAllByIdForUpdate(orders.stream().map(Order::getUserId).collect(Collectors.toList()));
-    }
-
-    @Transactional
     public void updateUserCash(User user, Double executeAmount) {
         user.setCash(user.getCash() + executeAmount);
     }
 
     @Transactional
     public void updateUserCash(Order order) {
-        User user = getUserForUpdate(order.getUserId());
+        User user = order.getUser();
         user.setCash(user.getCash() + order.getAmount() * order.getPrice());
     }
 

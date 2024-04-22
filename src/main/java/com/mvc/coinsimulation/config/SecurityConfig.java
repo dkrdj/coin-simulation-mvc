@@ -36,7 +36,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request ->
-                        request.requestMatchers("/rank", "/ws/**", "/login").permitAll()
+                        request.requestMatchers("/rank", "/ws/**", "/login", "/coin").permitAll()
                                 .anyRequest().authenticated())
                 .addFilterAt(new LoginFilter(s3Utils, snakeOM, userRepository), UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(new SessionFilter(userRepository), UsernamePasswordAuthenticationFilter.class)

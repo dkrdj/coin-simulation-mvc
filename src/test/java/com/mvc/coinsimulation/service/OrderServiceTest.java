@@ -4,9 +4,11 @@ import com.mvc.coinsimulation.dto.common.Trade;
 import com.mvc.coinsimulation.dto.request.OrderRequest;
 import com.mvc.coinsimulation.dto.response.OrderResponse;
 import com.mvc.coinsimulation.entity.Order;
+import com.mvc.coinsimulation.entity.User;
 import com.mvc.coinsimulation.enums.Gubun;
 import com.mvc.coinsimulation.exception.NoOrderException;
 import com.mvc.coinsimulation.repository.postgres.OrderRepository;
+import com.mvc.coinsimulation.repository.postgres.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,6 +32,8 @@ class OrderServiceTest {
 
     @Mock
     private OrderRepository orderRepository;
+    @Mock
+    private UserRepository userRepository;
     @Mock
     private UserService userService;
     @Mock
@@ -86,13 +90,13 @@ class OrderServiceTest {
         String code = "code";
         Double price = 200000d;
         Double amount = 1.2d;
-        Long userId = 1L;
+        User user = User.builder().id(1L).build();
         OrderRequest orderRequest = new OrderRequest(code, price, amount);
         LocalDateTime dateTime = LocalDateTime.now();
         when(orderRepository.save(any(Order.class))).thenReturn(
                 Order.builder()
                         .id(1L)
-                        .userId(userId)
+                        .user(user)
                         .code(code)
                         .gubun(Gubun.ASK)
                         .price(price)
@@ -100,9 +104,10 @@ class OrderServiceTest {
                         .dateTime(dateTime)
                         .build()
         );
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
         //when
-        OrderResponse orderResponse = orderService.buyOrder(userId, orderRequest);
+        OrderResponse orderResponse = orderService.buyOrder(user.getId(), orderRequest);
 
         //then
         assertEquals(1L, orderResponse.getId());
@@ -122,13 +127,13 @@ class OrderServiceTest {
         String code = "code";
         Double price = 200000d;
         Double amount = 1.2d;
-        Long userId = 1L;
+        User user = User.builder().id(1L).build();
         OrderRequest orderRequest = new OrderRequest(code, price, amount);
         LocalDateTime dateTime = LocalDateTime.now();
         when(orderRepository.save(any(Order.class))).thenReturn(
                 Order.builder()
                         .id(1L)
-                        .userId(userId)
+                        .user(user)
                         .code(code)
                         .gubun(Gubun.BID)
                         .price(price)
@@ -136,9 +141,10 @@ class OrderServiceTest {
                         .dateTime(dateTime)
                         .build()
         );
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
         //when
-        OrderResponse orderResponse = orderService.buyOrder(userId, orderRequest);
+        OrderResponse orderResponse = orderService.buyOrder(user.getId(), orderRequest);
 
         //then
         assertEquals(1L, orderResponse.getId());
@@ -153,26 +159,26 @@ class OrderServiceTest {
     @DisplayName("주문 취소 테스트")
     void cancelOrder() {
         //given
-        Long userId = 1L;
+        User user = User.builder().id(1L).build();
         doNothing().when(userService).updateUserCash(any(Order.class));
         when(assetService.updateAssetForBidOrderCancel(any(Order.class))).thenReturn(null);
         Order askOrder = Order.builder()
                 .id(1L)
-                .userId(userId)
+                .user(user)
                 .gubun(Gubun.ASK)
                 .build();
         Order bidOrder = Order.builder()
                 .id(2L)
-                .userId(userId)
+                .user(user)
                 .gubun(Gubun.BID)
                 .build();
-        when(orderRepository.findByIdAndUserIdForUpdate(1L, userId)).thenReturn(Optional.of(askOrder));
-        when(orderRepository.findByIdAndUserIdForUpdate(2L, userId)).thenReturn(Optional.of(bidOrder));
-        when(orderRepository.findByIdAndUserIdForUpdate(3L, userId)).thenReturn(Optional.empty());
+        when(orderRepository.findByIdAndUserIdForUpdate(1L, user.getId())).thenReturn(Optional.of(askOrder));
+        when(orderRepository.findByIdAndUserIdForUpdate(2L, user.getId())).thenReturn(Optional.of(bidOrder));
+        when(orderRepository.findByIdAndUserIdForUpdate(3L, user.getId())).thenReturn(Optional.empty());
 
         //when
-        orderService.cancelOrder(userId, 2L);
-        orderService.cancelOrder(userId, 1L);
+        orderService.cancelOrder(user.getId(), 2L);
+        orderService.cancelOrder(user.getId(), 1L);
 
         //then
         verify(userService, times(1)).updateUserCash(askOrder);

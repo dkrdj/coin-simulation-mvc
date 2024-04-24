@@ -60,7 +60,7 @@ public class ExecutionService {
         Map<Long, Asset> assetMap = assets.stream().collect(Collectors.toMap(Asset::getUserId, Function.identity()));
         for (Order order : orders) {
             Double executeAmount = orderService.updateOrder(trade, order);
-            Execution execution = createExecution(trade, order, executeAmount);
+            Execution execution = insert(trade, order, executeAmount);
             Asset asset = assetMap.get(execution.getUserId());
             assetService.updateAssetForExecution(asset, execution);
             sseService.sendExecution(execution);

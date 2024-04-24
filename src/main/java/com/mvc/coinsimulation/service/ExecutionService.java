@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -24,7 +25,6 @@ import java.util.stream.Collectors;
 @Service
 public class ExecutionService {
     private final ExecutionRepository executionRepository;
-    private final TicketService ticketService;
     private final OrderService orderService;
     private final OrderRepository orderRepository;
     private final AssetService assetService;
@@ -40,13 +40,16 @@ public class ExecutionService {
     @Transactional
     public void executeAsk(Trade trade) {
         List<Order> orders = orderRepository.findBidOrders(trade.getCode(), trade.getTradePrice());
+        List<Execution> executions = new ArrayList<>();
         for (Order order : orders) {
             Double executeAmount = orderService.updateOrder(trade, order);
-            Execution execution = insert(trade, order, executeAmount);
+            Execution execution = createExecution(trade, order, executeAmount);
+            executions.add(execution);
             User user = order.getUser();
             userService.updateUserCash(user, trade.getTradePrice() * executeAmount);
             sseService.sendExecution(execution);
         }
+        executionRepository.bulkInsert(executions);
 //        System.out.println("real : " + trade.getSequentialId());
     }
 
@@ -57,7 +60,7 @@ public class ExecutionService {
         Map<Long, Asset> assetMap = assets.stream().collect(Collectors.toMap(Asset::getUserId, Function.identity()));
         for (Order order : orders) {
             Double executeAmount = orderService.updateOrder(trade, order);
-            Execution execution = insert(trade, order, executeAmount);
+            Execution execution = createExecution(trade, order, executeAmount);
             Asset asset = assetMap.get(execution.getUserId());
             assetService.updateAssetForExecution(asset, execution);
             sseService.sendExecution(execution);
@@ -76,5 +79,18 @@ public class ExecutionService {
                 .sequentialId(trade.getSequentialId())
                 .build();
         return executionRepository.save(execution);
+    }
+
+    private Execution createExecution(Trade trade, Order order, Double executeAmount) {
+        return Execution.builder()
+                .price(order.getPrice())
+                .userId(order.getUser().getId())
+                .gubun(order.getGubun())
+                .code(order.getCode())
+                .amount(executeAmount)
+                .totalPrice(order.getPrice() * executeAmount)
+                .dateTime(LocalDateTime.now())
+                .sequentialId(trade.getSequentialId())
+                .build();
     }
 }

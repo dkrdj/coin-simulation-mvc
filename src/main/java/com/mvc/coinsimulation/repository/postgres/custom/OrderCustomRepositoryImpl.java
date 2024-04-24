@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.mvc.coinsimulation.entity.QOrder.order;
+import static com.mvc.coinsimulation.entity.QUser.user;
 
 @Repository
 @RequiredArgsConstructor
@@ -27,6 +28,8 @@ public class OrderCustomRepositoryImpl implements OrderCustomRepository {
     @Override
     public Optional<Order> findByIdAndUserIdForUpdate(Long id, Long userId) {
         return query.selectFrom(order)
+                .innerJoin(order.user, user)
+                .fetchJoin()
                 .where(order.id.eq(id))
                 .where(order.user.id.eq(userId))
                 .setLockMode(LockModeType.PESSIMISTIC_WRITE)
@@ -43,6 +46,8 @@ public class OrderCustomRepositoryImpl implements OrderCustomRepository {
     @Override
     public List<Order> findAskOrders(String code, Double price) {
         return query.selectFrom(order)
+                .innerJoin(order.user, user)
+                .fetchJoin()
                 .where(order.gubun.eq(Gubun.ASK))
                 .where(order.code.eq(code))
                 .where(order.price.goe(price))
@@ -60,6 +65,8 @@ public class OrderCustomRepositoryImpl implements OrderCustomRepository {
     @Override
     public List<Order> findBidOrders(String code, Double price) {
         return query.selectFrom(order)
+                .innerJoin(order.user, user)
+                .fetchJoin()
                 .where(order.gubun.eq(Gubun.BID))
                 .where(order.code.eq(code))
                 .where(order.price.loe(price))

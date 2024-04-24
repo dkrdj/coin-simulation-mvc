@@ -38,8 +38,8 @@ public class UserService {
     }
 
     @Transactional
-    public void updateUserCash(User user, Double executeAmount) {
-        user.setCash(user.getCash() + executeAmount);
+    public void updateUserCash(User user, Double cash) {
+        user.setCash(user.getCash() + cash);
     }
 
     @Transactional

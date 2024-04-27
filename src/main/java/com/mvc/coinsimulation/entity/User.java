@@ -9,6 +9,8 @@ import jakarta.persistence.Id;
 import lombok.*;
 import org.springframework.beans.BeanUtils;
 
+import java.math.BigDecimal;
+
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -26,7 +28,7 @@ public class User {
     private String profile;
     private Long providerId;
     @Setter
-    private Double cash;
+    private BigDecimal cash;
 
     public UserResponse toResponse() {
         UserResponse userResponse = new UserResponse();

@@ -6,6 +6,7 @@ import com.mvc.coinsimulation.dto.common.UserDto;
 import com.mvc.coinsimulation.dto.request.LoginRequest;
 import com.mvc.coinsimulation.dto.response.LoginResponse;
 import com.mvc.coinsimulation.entity.User;
+import com.mvc.coinsimulation.enums.CoinConstant;
 import com.mvc.coinsimulation.exception.LoginException;
 import com.mvc.coinsimulation.repository.postgres.UserRepository;
 import com.mvc.coinsimulation.util.S3Utils;
@@ -84,7 +85,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
                             .profile(s3Utils.uploadFromUrl(loginRequest.getProfile(), loginRequest.getProviderId()))
                             .nickname(loginRequest.getNickname())
                             .role("USER")
-                            .cash(30000000d)
+                            .cash(CoinConstant.INITIAL_ASSET_VALUE.getValue())
                             .build())
                     .toDto();
         }

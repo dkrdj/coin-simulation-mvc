@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.beans.BeanUtils;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
@@ -22,10 +23,10 @@ public class Execution {
     private Long userId;
     @Enumerated(EnumType.STRING)
     private Gubun gubun;
-    private Double amount;
+    private BigDecimal amount;
     private String code;
-    private Double price;
-    private Double totalPrice;
+    private BigDecimal price;
+    private BigDecimal totalPrice;
     private LocalDateTime dateTime;
     private Long sequentialId;
 

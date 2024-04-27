@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -25,7 +26,7 @@ public class OrderController {
 
     @PostMapping("buy")
     public ResponseEntity<?> buy(@SessionAttribute("user") Long userId, @RequestBody OrderRequest orderRequest) {
-        if (orderRequest.getPrice() % CoinConstant.COIN_MIN_VALUE.getValue() != 0) {
+        if (orderRequest.getPrice().remainder(CoinConstant.COIN_MIN_VALUE.getValue()).equals(BigDecimal.ZERO)) {
             return ResponseEntity.badRequest().body("최소 금액 (" + CoinConstant.COIN_MIN_VALUE.getValue() + ") 단위로 주문 신청을 해야 합니다.");
         }
         return ResponseEntity.ok(orderService.buyOrder(userId, orderRequest));
@@ -33,7 +34,7 @@ public class OrderController {
 
     @PostMapping("sell")
     public ResponseEntity<?> sell(@SessionAttribute("user") Long userId, @RequestBody OrderRequest orderRequest) {
-        if (orderRequest.getPrice() % CoinConstant.COIN_MIN_VALUE.getValue() != 0) {
+        if (orderRequest.getPrice().remainder(CoinConstant.COIN_MIN_VALUE.getValue()).equals(BigDecimal.ZERO)) {
             return ResponseEntity.badRequest().body("최소 금액 (" + CoinConstant.COIN_MIN_VALUE.getValue() + ") 단위로 주문 신청을 해야 합니다.");
         }
         return ResponseEntity.ok(orderService.sellOrder(userId, orderRequest));

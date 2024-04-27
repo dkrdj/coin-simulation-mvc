@@ -8,6 +8,7 @@ import com.mvc.coinsimulation.repository.mongo.EthereumRepository;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,7 +25,7 @@ import java.util.function.Function;
  */
 @Service
 public class TicketService {
-    private final Map<String, Double> currentPrices = new ConcurrentHashMap<>();
+    private final Map<String, BigDecimal> currentPrices = new ConcurrentHashMap<>();
     private final Map<String, MongoRepository<?, String>> mongoRepositories = new HashMap<>();
     private final Map<String, Function<TicketDto, ?>> coinFunctions = new HashMap<>();
 
@@ -52,7 +53,7 @@ public class TicketService {
      * @param code 코인 코드
      * @return 현재 코인의 가격
      */
-    public Double getCurrentPrice(String code) {
+    public BigDecimal getCurrentPrice(String code) {
         return currentPrices.get(code);
     }
 
@@ -85,7 +86,7 @@ public class TicketService {
      * @param code  코인 코드
      * @param price 현재 코인의 가격
      */
-    private void setCurrentPrice(String code, Double price) {
+    private void setCurrentPrice(String code, BigDecimal price) {
         currentPrices.put(code, price);
     }
 }

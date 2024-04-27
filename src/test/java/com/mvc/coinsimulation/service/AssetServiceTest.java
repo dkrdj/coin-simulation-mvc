@@ -23,6 +23,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -56,11 +57,11 @@ class AssetServiceTest {
         //given
         Asset asset = Asset.builder()
                 .code(code)
-                .averagePrice(20392392d)
-                .amount(1.24d)
+                .averagePrice(BigDecimal.valueOf(20392392))
+                .amount(BigDecimal.valueOf(1.24))
                 .build();
         when(assetRepository.findByUserId(1L)).thenReturn(List.of(asset));
-        when(ticketService.getCurrentPrice(code)).thenReturn(10000d);
+        when(ticketService.getCurrentPrice(code)).thenReturn(BigDecimal.valueOf(10000));
 
         //when
         List<AssetResponse> assetResponses = assetService.getAsset(1L);
@@ -69,9 +70,9 @@ class AssetServiceTest {
         //then
         assertEquals(1, assetResponses.size());
         assertEquals(code, assetResponse.getCode());
-        assertEquals(20392392d, assetResponse.getBuyingPrice());
-        assertEquals(1.24d, assetResponse.getAmount());
-        assertEquals(12400d, assetResponse.getCurrentPrice());
+        assertEquals(BigDecimal.valueOf(20392392).compareTo(assetResponse.getBuyingPrice()), 0);
+        assertEquals(BigDecimal.valueOf(1.24).compareTo(assetResponse.getAmount()), 0);
+        assertEquals(BigDecimal.valueOf(12400).compareTo(assetResponse.getCurrentPrice()), 0);
     }
 
     @Test
@@ -119,8 +120,8 @@ class AssetServiceTest {
         String nickname = "nickname";
         String profile = "profile";
 
-        Asset smallAsset = Asset.builder().code(code).amount(0.1d).build();
-        Asset bigAsset = Asset.builder().code(code).amount(100d).build();
+        Asset smallAsset = Asset.builder().code(code).amount(BigDecimal.valueOf(0.1)).build();
+        Asset bigAsset = Asset.builder().code(code).amount(BigDecimal.valueOf(100)).build();
         List<Asset> smallAssetList = List.of(smallAsset);
         List<Asset> bigAssetList = List.of(smallAsset, bigAsset);
 
@@ -135,21 +136,21 @@ class AssetServiceTest {
         when(assetRepository.findByUserId(normalUserId)).thenReturn(smallAssetList);
         when(assetRepository.findByUserId(deletedUserId)).thenReturn(smallAssetList);
 
-        when(ticketService.getCurrentPrice(code)).thenReturn(1000000d);
+        when(ticketService.getCurrentPrice(code)).thenReturn(BigDecimal.valueOf(1000000));
 
         when(userRepository.findById(assetOverUserId)).thenReturn(
                 Optional.of(User.builder()
-                        .cash(0d)
+                        .cash(BigDecimal.ZERO)
                         .build()));
         when(userRepository.findById(cashOverUserId)).thenReturn(
                 Optional.of(User.builder()
-                        .cash(100000000d)
+                        .cash(BigDecimal.valueOf(100000000))
                         .build()));
         when(userRepository.findById(normalUserId)).thenReturn(
                 Optional.of(User.builder()
                         .nickname(nickname)
                         .profile(profile)
-                        .cash(0d)
+                        .cash(BigDecimal.ZERO)
                         .build()));
         when(userRepository.findById(deletedUserId)).thenReturn(
                 Optional.empty());
@@ -177,15 +178,15 @@ class AssetServiceTest {
         Long notEnoughCoinUserId = 2L;
         Long normalUserId = 3L;
         String code = "code";
-        Double amount = 1.2d;
+        BigDecimal amount = BigDecimal.valueOf(1.2);
         OrderRequest orderRequest = new OrderRequest(code, null, amount);
 
         when(assetRepository.findByUserIdAndCode(noAssetUserId, orderRequest.getCode()))
                 .thenReturn(Optional.empty());
         when(assetRepository.findByUserIdAndCode(notEnoughCoinUserId, orderRequest.getCode()))
-                .thenReturn(Optional.of(Asset.builder().amount(1.1d).build()));
+                .thenReturn(Optional.of(Asset.builder().amount(BigDecimal.valueOf(1.1)).build()));
         when(assetRepository.findByUserIdAndCode(normalUserId, orderRequest.getCode()))
-                .thenReturn(Optional.of(Asset.builder().amount(1.3d).build()));
+                .thenReturn(Optional.of(Asset.builder().amount(BigDecimal.valueOf(1.3)).build()));
 
         //when
         Asset resultAsset = assetService.updateAssetForBidOrder(normalUserId, orderRequest);
@@ -196,7 +197,7 @@ class AssetServiceTest {
         assertThrows(NotEnoughCoinException.class,
                 () -> assetService.updateAssetForBidOrder(noAssetUserId, orderRequest));
 
-        assertEquals(1.3d - 1.2d, resultAsset.getAmount());
+        assertEquals(BigDecimal.valueOf(0.1), resultAsset.getAmount());
     }
 
     @Test
@@ -208,14 +209,14 @@ class AssetServiceTest {
         String code = "code";
         Order noAssetUserOrder = Order.builder()
                 .user(noAssetUser)
-                .prePrice(500d)
-                .amount(0.9d)
+                .prePrice(BigDecimal.valueOf(500))
+                .amount(BigDecimal.valueOf(0.9))
                 .code(code)
                 .build();
         Order normalUserIdOrder = Order.builder()
                 .user(normalUser)
-                .prePrice(500d)
-                .amount(0.9d)
+                .prePrice(BigDecimal.valueOf(500))
+                .amount(BigDecimal.valueOf(0.9))
                 .code(code)
                 .build();
         when(assetRepository.findByUserIdAndCode(noAssetUser.getId(), code))
@@ -224,8 +225,8 @@ class AssetServiceTest {
                 .thenReturn(Optional.of(Asset.builder()
                         .userId(normalUser.getId())
                         .code(code)
-                        .amount(0.1d)
-                        .averagePrice(100d)
+                        .amount(BigDecimal.valueOf(0.1))
+                        .averagePrice(BigDecimal.valueOf(100))
                         .build()));
 
         //when
@@ -234,13 +235,13 @@ class AssetServiceTest {
 
         //then
         assertEquals(code, noAssetUserAsset.getCode());
-        assertEquals(500d, noAssetUserAsset.getAveragePrice());
-        assertEquals(0.9d, noAssetUserAsset.getAmount());
+        assertEquals(BigDecimal.valueOf(500).compareTo(noAssetUserAsset.getAveragePrice()), 0);
+        assertEquals(BigDecimal.valueOf(0.9).compareTo(noAssetUserAsset.getAmount()), 0);
         assertEquals(noAssetUser.getId(), noAssetUserAsset.getUserId());
 
         assertEquals(code, normalUserAsset.getCode());
-        assertEquals(460d, normalUserAsset.getAveragePrice());
-        assertEquals(1d, normalUserAsset.getAmount());
+        assertEquals(BigDecimal.valueOf(460).compareTo(normalUserAsset.getAveragePrice()), 0);
+        assertEquals(BigDecimal.valueOf(1).compareTo(normalUserAsset.getAmount()), 0);
         assertEquals(normalUser.getId(), normalUserAsset.getUserId());
 
     }
@@ -254,21 +255,21 @@ class AssetServiceTest {
         Execution normalUserExecution = Execution.builder()
                 .code("code")
                 .userId(normalUserId)
-                .amount(0.9d)
-                .totalPrice(900000d)
+                .amount(BigDecimal.valueOf(0.9))
+                .totalPrice(BigDecimal.valueOf(900000))
                 .build();
         Execution noAssetUserExecution = Execution.builder()
                 .code("code")
                 .userId(noAssetUserId)
-                .amount(0.9d)
-                .totalPrice(900000d)
+                .amount(BigDecimal.valueOf(0.9))
+                .totalPrice(BigDecimal.valueOf(900000))
                 .build();
         when(assetRepository.save(any()))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         Asset normalUserAsset = Asset.builder()
-                .amount(0.1d)
-                .averagePrice(20000000d)
+                .amount(BigDecimal.valueOf(0.1))
+                .averagePrice(BigDecimal.valueOf(20000000))
                 .code("code")
                 .userId(normalUserId)
                 .build();
@@ -279,13 +280,13 @@ class AssetServiceTest {
 
         //then
         verify(assetRepository).save(argThat(
-                asset -> asset.getAmount() == 0.9d &&
+                asset -> asset.getAmount().equals(BigDecimal.valueOf(0.9)) &&
                         asset.getCode().equals("code") &&
-                        asset.getAveragePrice() == 1000000d &&
+                        asset.getAveragePrice().equals(BigDecimal.valueOf(1000000)) &&
                         Objects.equals(asset.getUserId(), noAssetUserId)
         ));
-        assertEquals(2900000d, normalUserAsset.getAveragePrice());
-        assertEquals(1d, normalUserAsset.getAmount());
+        assertEquals(BigDecimal.valueOf(2900000).compareTo(normalUserAsset.getAveragePrice()), 0);
+        assertEquals(BigDecimal.valueOf(1).compareTo(normalUserAsset.getAmount()), 0);
     }
 
 }

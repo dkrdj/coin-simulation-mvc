@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mvc.coinsimulation.enums.Gubun;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 
@@ -16,35 +17,35 @@ public class TicketDto {
     private String id;
     private String type;
     private String code;
-    private Double openingPrice;
-    private Double highPrice;
-    private Double lowPrice;
-    private Double tradePrice;
-    private Double prevClosingPrice;
+    private BigDecimal openingPrice;
+    private BigDecimal highPrice;
+    private BigDecimal lowPrice;
+    private BigDecimal tradePrice;
+    private BigDecimal prevClosingPrice;
     private String change;
-    private Double changePrice;
-    private Double signedChangePrice;
-    private Double changeRate;
-    private Double signedChangeRate;
-    private Double tradeVolume;
-    private Double accTradeVolume;
+    private BigDecimal changePrice;
+    private BigDecimal signedChangePrice;
+    private BigDecimal changeRate;
+    private BigDecimal signedChangeRate;
+    private BigDecimal tradeVolume;
+    private BigDecimal accTradeVolume;
     @JsonProperty("acc_trade_volume_24h")
-    private Double accTradeVolume24h;
-    private Double accTradePrice;
+    private BigDecimal accTradeVolume24h;
+    private BigDecimal accTradePrice;
     @JsonProperty("acc_trade_price_24h")
-    private Double accTradePrice24h;
+    private BigDecimal accTradePrice24h;
     private String tradeDate;
     private String tradeTime;
     private Long tradeTimestamp;
     private Gubun askBid;
-    private Double accAskVolume;
-    private Double accBidVolume;
+    private BigDecimal accAskVolume;
+    private BigDecimal accBidVolume;
     @JsonProperty("highest_52_week_price")
-    private Double highest52WeekPrice;
+    private BigDecimal highest52WeekPrice;
     @JsonProperty("highest_52_week_date")
     private String highest52WeekDate;
     @JsonProperty("lowest_52_week_price")
-    private Double lowest52WeekPrice;
+    private BigDecimal lowest52WeekPrice;
     @JsonProperty("lowest_52_week_date")
     private String lowest52WeekDate;
     private String tradeStatus;

@@ -30,10 +30,10 @@ public class ExecutionJbdcRepositoryImpl implements ExecutionJbdcRepository {
                 Execution execution = executions.get(i);
                 ps.setLong(1, execution.getUserId());
                 ps.setString(2, execution.getGubun().getValue());
-                ps.setDouble(3, execution.getAmount());
+                ps.setBigDecimal(3, execution.getAmount());
                 ps.setString(4, execution.getCode());
-                ps.setDouble(5, execution.getPrice());
-                ps.setDouble(6, execution.getTotalPrice());
+                ps.setBigDecimal(5, execution.getPrice());
+                ps.setBigDecimal(6, execution.getTotalPrice());
                 ps.setTimestamp(7, Timestamp.valueOf(execution.getDateTime()));
                 ps.setLong(8, execution.getSequentialId());
             }

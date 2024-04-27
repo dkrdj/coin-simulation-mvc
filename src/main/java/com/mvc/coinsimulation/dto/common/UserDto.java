@@ -2,6 +2,8 @@ package com.mvc.coinsimulation.dto.common;
 
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -13,5 +15,5 @@ public class UserDto {
     private String role;
     private String profile;
     private Long providerId;
-    private Double cash;
+    private BigDecimal cash;
 }

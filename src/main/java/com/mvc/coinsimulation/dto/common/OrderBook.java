@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -16,7 +17,7 @@ public class OrderBook {
     private String type;
     private String code;
     private Long timestamp;
-    private Double totalAskSize;
-    private Double totalBidSize;
+    private BigDecimal totalAskSize;
+    private BigDecimal totalBidSize;
     private String streamType;
 }

@@ -16,6 +16,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,22 +39,22 @@ public class UserService {
     }
 
     @Transactional
-    public void updateUserCash(User user, Double cash) {
-        user.setCash(user.getCash() + cash);
+    public void updateUserCash(User user, BigDecimal cash) {
+        user.setCash(user.getCash().add(cash));
     }
 
     @Transactional
     public void updateUserCash(Order order) {
         User user = order.getUser();
-        user.setCash(user.getCash() + order.getAmount() * order.getPrice());
+        user.setCash(user.getCash().add(order.getAmount().multiply(order.getPrice())));
     }
 
     @Transactional
     public void updateUserCash(Long userId, OrderRequest orderRequest) {
         User user = getUserForUpdate(userId);
-        Double totalPrice = orderRequest.getPrice() * orderRequest.getAmount();
-        if (user.getCash() >= totalPrice) {
-            user.setCash(user.getCash() - totalPrice);
+        BigDecimal totalPrice = orderRequest.getPrice().multiply(orderRequest.getAmount());
+        if (user.getCash().compareTo(totalPrice) >= 0) {
+            user.setCash(user.getCash().subtract(totalPrice));
         } else {
             throw new NotEnoughCashException();
         }

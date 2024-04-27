@@ -6,6 +6,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor
@@ -19,7 +21,7 @@ public class Asset {
     private Long userId;
     private String code;
     @Setter
-    private Double averagePrice;
+    private BigDecimal averagePrice;
     @Setter
-    private Double amount;
+    private BigDecimal amount;
 }

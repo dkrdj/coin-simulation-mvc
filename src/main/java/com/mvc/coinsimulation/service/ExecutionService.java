@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,11 +43,11 @@ public class ExecutionService {
         List<Order> orders = orderRepository.findBidOrders(trade.getCode(), trade.getTradePrice());
         List<Execution> executions = new ArrayList<>();
         for (Order order : orders) {
-            Double executeAmount = orderService.updateOrder(trade, order);
+            BigDecimal executeAmount = orderService.updateOrder(trade, order);
             Execution execution = createExecution(trade, order, executeAmount);
             executions.add(execution);
             User user = order.getUser();
-            userService.updateUserCash(user, trade.getTradePrice() * executeAmount);
+            userService.updateUserCash(user, trade.getTradePrice().multiply(executeAmount));
             sseService.sendExecution(execution);
         }
         executionRepository.bulkInsert(executions);
@@ -59,7 +60,7 @@ public class ExecutionService {
         List<Asset> assets = assetService.getAssets(orders, trade);
         Map<Long, Asset> assetMap = assets.stream().collect(Collectors.toMap(Asset::getUserId, Function.identity()));
         for (Order order : orders) {
-            Double executeAmount = orderService.updateOrder(trade, order);
+            BigDecimal executeAmount = orderService.updateOrder(trade, order);
             Execution execution = insert(trade, order, executeAmount);
             Asset asset = assetMap.get(execution.getUserId());
             assetService.updateAssetForExecution(asset, execution);
@@ -67,28 +68,28 @@ public class ExecutionService {
         }
     }
 
-    private Execution insert(Trade trade, Order order, Double executeAmount) {
+    private Execution insert(Trade trade, Order order, BigDecimal executeAmount) {
         Execution execution = Execution.builder()
                 .price(order.getPrice())
                 .userId(order.getUser().getId())
                 .gubun(order.getGubun())
                 .code(order.getCode())
                 .amount(executeAmount)
-                .totalPrice(order.getPrice() * executeAmount)
+                .totalPrice(order.getPrice().multiply(executeAmount))
                 .dateTime(LocalDateTime.now())
                 .sequentialId(trade.getSequentialId())
                 .build();
         return executionRepository.save(execution);
     }
 
-    private Execution createExecution(Trade trade, Order order, Double executeAmount) {
+    private Execution createExecution(Trade trade, Order order, BigDecimal executeAmount) {
         return Execution.builder()
                 .price(order.getPrice())
                 .userId(order.getUser().getId())
                 .gubun(order.getGubun())
                 .code(order.getCode())
                 .amount(executeAmount)
-                .totalPrice(order.getPrice() * executeAmount)
+                .totalPrice(order.getPrice().multiply(executeAmount))
                 .dateTime(LocalDateTime.now())
                 .sequentialId(trade.getSequentialId())
                 .build();

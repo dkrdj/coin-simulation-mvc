@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,7 +44,7 @@ public class OrderService {
         return insertOrder(userId, orderRequest, Gubun.BID, asset.getAveragePrice()).toResponse();
     }
 
-    private Order insertOrder(Long userId, OrderRequest orderRequest, Gubun gubun, Double prePrice) {
+    private Order insertOrder(Long userId, OrderRequest orderRequest, Gubun gubun, BigDecimal prePrice) {
         User user = userRepository.findById(userId).orElseThrow(NoUserException::new);
         return orderRepository.save(Order.builder()
                 .amount(orderRequest.getAmount())
@@ -80,13 +81,13 @@ public class OrderService {
     }
 
     @Transactional
-    public Double updateOrder(Trade trade, Order order) {
-        Double restAmount = order.getAmount();
-        Double executeAmount = Math.min(trade.getTradeVolume(), restAmount);
+    public BigDecimal updateOrder(Trade trade, Order order) {
+        BigDecimal restAmount = order.getAmount();
+        BigDecimal executeAmount = trade.getTradeVolume().min(restAmount);
         if (executeAmount.equals(restAmount)) {
             orderRepository.deleteById(order.getId());
         } else {
-            order.setAmount(restAmount - executeAmount);
+            order.setAmount(restAmount.subtract(executeAmount));
         }
         return executeAmount;
     }

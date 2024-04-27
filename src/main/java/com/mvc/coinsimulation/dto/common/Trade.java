@@ -3,16 +3,18 @@ package com.mvc.coinsimulation.dto.common;
 import com.mvc.coinsimulation.enums.Gubun;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 public class Trade {
     private String type;
     private String code;
-    private Double tradePrice;
-    private Double tradeVolume;
+    private BigDecimal tradePrice;
+    private BigDecimal tradeVolume;
     private Gubun askBid;
-    private Double prevClosingPrice;
+    private BigDecimal prevClosingPrice;
     private String change;
-    private Double changePrice;
+    private BigDecimal changePrice;
     private String tradeDate;
     private String tradeTime;
     private Long tradeTimestamp;

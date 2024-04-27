@@ -16,6 +16,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,11 +52,11 @@ class OrderServiceTest {
         String code = "code";
         for (long i = 0; i < 10; i++) {
             Order order = Order.builder()
-                    .amount(i / 10.0)
+                    .amount(BigDecimal.valueOf(i).divide(BigDecimal.valueOf(10), RoundingMode.HALF_UP))
                     .code(code)
                     .dateTime(dateTime)
                     .gubun(i % 2 == 0 ? Gubun.ASK : Gubun.BID)
-                    .price(2000000d)
+                    .price(BigDecimal.valueOf(2000000))
                     .id(i)
                     .build();
             orderList.add(order);
@@ -76,8 +78,8 @@ class OrderServiceTest {
             } else {
                 assertEquals(Gubun.BID, orderResponse.getGubun());
             }
-            assertEquals(2000000d, orderResponse.getPrice());
-            assertEquals(i / 10.0, orderResponse.getAmount());
+            assertEquals(BigDecimal.valueOf(2000000), orderResponse.getPrice());
+            assertEquals(BigDecimal.valueOf(i).divide(BigDecimal.valueOf(10), RoundingMode.HALF_UP), orderResponse.getAmount());
             assertEquals(dateTime, orderResponse.getDateTime());
         }
     }
@@ -88,8 +90,8 @@ class OrderServiceTest {
         //given
         doNothing().when(userService).updateUserCash(anyLong(), any(OrderRequest.class));
         String code = "code";
-        Double price = 200000d;
-        Double amount = 1.2d;
+        BigDecimal price = BigDecimal.valueOf(200000);
+        BigDecimal amount = BigDecimal.valueOf(1.2);
         User user = User.builder().id(1L).build();
         OrderRequest orderRequest = new OrderRequest(code, price, amount);
         LocalDateTime dateTime = LocalDateTime.now();
@@ -125,8 +127,8 @@ class OrderServiceTest {
         //given
         doNothing().when(userService).updateUserCash(anyLong(), any(OrderRequest.class));
         String code = "code";
-        Double price = 200000d;
-        Double amount = 1.2d;
+        BigDecimal price = BigDecimal.valueOf(200000);
+        BigDecimal amount = BigDecimal.valueOf(1.2);
         User user = User.builder().id(1L).build();
         OrderRequest orderRequest = new OrderRequest(code, price, amount);
         LocalDateTime dateTime = LocalDateTime.now();
@@ -195,9 +197,9 @@ class OrderServiceTest {
         long orderLessId = 1L;
         long orderExactId = 2L;
         long orderMoreId = 3L;
-        Double lessVolume = 1.242d;
-        Double tradeVolume = 1.342d;
-        Double moreVolume = 1.442d;
+        BigDecimal lessVolume = BigDecimal.valueOf(1.242);
+        BigDecimal tradeVolume = BigDecimal.valueOf(1.342);
+        BigDecimal moreVolume = BigDecimal.valueOf(1.442);
         Trade trade = new Trade();
         trade.setTradeVolume(tradeVolume);
         Order orderLessVolume = Order.builder()
@@ -215,9 +217,9 @@ class OrderServiceTest {
         doNothing().when(orderRepository).deleteById(anyLong());
 
         //when
-        Double executeLessAmount = orderService.updateOrder(trade, orderLessVolume);
-        Double executeExactAmount = orderService.updateOrder(trade, orderExactVolume);
-        Double executeMoreAmount = orderService.updateOrder(trade, orderMoreVolume);
+        BigDecimal executeLessAmount = orderService.updateOrder(trade, orderLessVolume);
+        BigDecimal executeExactAmount = orderService.updateOrder(trade, orderExactVolume);
+        BigDecimal executeMoreAmount = orderService.updateOrder(trade, orderMoreVolume);
 
         //then
 

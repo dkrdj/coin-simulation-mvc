@@ -21,6 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -54,7 +56,7 @@ public class AssetService {
                         .code(asset.getCode())
                         .buyingPrice(asset.getAveragePrice())
                         .amount(asset.getAmount())
-                        .currentPrice(ticketService.getCurrentPrice(asset.getCode()) * asset.getAmount())
+                        .currentPrice(ticketService.getCurrentPrice(asset.getCode()).multiply(asset.getAmount()))
                         .build())
                 .collect(Collectors.toList());
     }
@@ -75,7 +77,7 @@ public class AssetService {
     @Transactional
     public UserResponse resetCash(Long userId) {
         // 유저의 총 자산을 계산하기 위한 변수
-        AtomicReference<Double> totalAsset = new AtomicReference<>(0d);
+        AtomicReference<BigDecimal> totalAsset = new AtomicReference<>(BigDecimal.ZERO);
 
         // 현재 매수 또는 매도 주문이 존재하는지 확인하고, 있다면 예외를 발생시킵니다.
         if (!orderRepository.findByUserId(userId).isEmpty()) {
@@ -84,19 +86,19 @@ public class AssetService {
 
         // 유저의 자산 목록을 조회하고, 각 자산의 현재 가치를 합산하여 총 자산을 계산합니다.
         assetRepository.findByUserId(userId).forEach(asset -> totalAsset.updateAndGet(
-                v -> v + ticketService.getCurrentPrice(asset.getCode()) * asset.getAmount()));
+                total -> total.add(ticketService.getCurrentPrice(asset.getCode()).multiply(asset.getAmount()))));
 
         // 유저의 현금 자산도 합산합니다.
         User user = userRepository.findById(userId).orElseThrow(NoUserException::new);
-        totalAsset.updateAndGet(total -> total + user.getCash());
+        totalAsset.updateAndGet(total -> total.add(user.getCash()));
 
         // 자산 초기화 임계값을 초과하는지 확인하고, 초과할 경우 예외를 발생시킵니다.
-        if (totalAsset.get() > CoinConstant.ASSET_RESET_THRESHOLD.getValue()) {
+        if (totalAsset.get().compareTo(CoinConstant.ASSET_RESET_THRESHOLD.getValue()) > 0) {
             throw new CashOverException();
         }
 
         // 유저의 자산을 초기화하고 초기화된 유저 정보를 반환합니다.
-        user.setCash((double) CoinConstant.INITIAL_ASSET_VALUE.getValue());
+        user.setCash(CoinConstant.INITIAL_ASSET_VALUE.getValue());
 
         return UserResponse.builder()
                 .cash(user.getCash())
@@ -109,8 +111,8 @@ public class AssetService {
     public Asset updateAssetForBidOrder(Long userId, OrderRequest orderRequest) {
         Asset asset = assetRepository.findByUserIdAndCode(userId, orderRequest.getCode())
                 .orElseThrow(NotEnoughCoinException::new);
-        if (asset.getAmount() >= orderRequest.getAmount()) {
-            asset.setAmount(asset.getAmount() - orderRequest.getAmount());
+        if (asset.getAmount().compareTo(orderRequest.getAmount()) >= 0) {
+            asset.setAmount(asset.getAmount().subtract(orderRequest.getAmount()));
         } else {
             throw new NotEnoughCoinException();
         }
@@ -121,13 +123,13 @@ public class AssetService {
     public Asset updateAssetForBidOrderCancel(Order order) {
         Asset asset = assetRepository.findByUserIdAndCode(order.getUser().getId(), order.getCode())
                 .orElse(Asset.builder()
-                        .amount(0d)
-                        .averagePrice(0d)
+                        .amount(BigDecimal.ZERO)
+                        .averagePrice(BigDecimal.ZERO)
                         .code(order.getCode())
                         .userId(order.getUser().getId())
                         .build());
         asset.setAveragePrice(calculateAveragePrice(asset, order));
-        asset.setAmount(asset.getAmount() + order.getAmount());
+        asset.setAmount(asset.getAmount().add(order.getAmount()));
         return asset;
     }
 
@@ -135,23 +137,25 @@ public class AssetService {
     public void updateAssetForExecution(Asset asset, Execution execution) {
         if (asset == null) {
             asset = Asset.builder()
-                    .amount(0d)
-                    .averagePrice(0d)
+                    .amount(BigDecimal.ZERO)
+                    .averagePrice(BigDecimal.ZERO)
                     .code(execution.getCode())
                     .userId(execution.getUserId())
                     .build();
             asset = assetRepository.save(asset);
         }
         asset.setAveragePrice(calculateAveragePrice(asset, execution));
-        asset.setAmount(asset.getAmount() + execution.getAmount());
+        asset.setAmount(asset.getAmount().add(execution.getAmount()));
     }
 
-    private Double calculateAveragePrice(Asset asset, Execution execution) {
-        return (asset.getAmount() * asset.getAveragePrice() + execution.getTotalPrice()) / (asset.getAmount() + execution.getAmount());
+    private BigDecimal calculateAveragePrice(Asset asset, Execution execution) {
+        return asset.getAmount().multiply(asset.getAveragePrice()).add(execution.getTotalPrice())
+                .divide(asset.getAmount().add(execution.getAmount()), RoundingMode.HALF_UP);
     }
 
-    private Double calculateAveragePrice(Asset asset, Order order) {
-        return (asset.getAveragePrice() * asset.getAmount() + order.getPrePrice() * order.getAmount()) / (asset.getAmount() + order.getAmount());
+    private BigDecimal calculateAveragePrice(Asset asset, Order order) {
+        return asset.getAveragePrice().multiply(asset.getAmount()).add(order.getPrePrice().multiply(order.getAmount()))
+                .divide(asset.getAmount().add(order.getAmount()), RoundingMode.HALF_UP);
     }
 
 }

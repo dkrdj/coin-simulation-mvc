@@ -17,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -49,7 +50,7 @@ class UserServiceTest {
                 .role("USER")
                 .profile("profile1")
                 .providerId(1L)
-                .cash(20000000d)
+                .cash(BigDecimal.valueOf(20000000))
                 .build();
         Optional<User> optionalUser = Optional.of(user);
         lenient().when(userRepository.findById(1L)).thenReturn(optionalUser);
@@ -61,12 +62,12 @@ class UserServiceTest {
     @DisplayName("매도 주문 체결로 인한 유저 현금 증가 테스트")
     void updateUserCash_order() {
         //given
-        User user2 = User.builder().id(2L).cash(1d).build();
+        User user2 = User.builder().id(2L).cash(BigDecimal.valueOf(1)).build();
         User user = userRepository.findByIdForUpdate(1L).get();
         Order order1 = Order.builder()
                 .user(user)
-                .amount(1d)
-                .price(100000d)
+                .amount(BigDecimal.valueOf(1))
+                .price(BigDecimal.valueOf(100000))
                 .build();
         Order order2 = Order.builder()
                 .user(user2)
@@ -76,21 +77,21 @@ class UserServiceTest {
         userService.updateUserCash(order1);
 
         //then
-        assertEquals(20100000d, user.getCash());
+        assertEquals(BigDecimal.valueOf(20100000).compareTo(user.getCash()), 0);
     }
 
     @Test
     @DisplayName("매수 주문 신청으로 인한 유저 현금 감소 테스트")
     void updateUserCash_orderRequest() {
         //given
-        OrderRequest orderRequest = new OrderRequest("KRW-BTC", 2000000d, 1.2d);
+        OrderRequest orderRequest = new OrderRequest("KRW-BTC", BigDecimal.valueOf(2000000), BigDecimal.valueOf(1.2));
         User user = userRepository.findByIdForUpdate(1L).get();
 
         //when
         userService.updateUserCash(1L, orderRequest);
 
         //then
-        assertEquals(17600000d, user.getCash());
+        assertEquals(BigDecimal.valueOf(17600000).compareTo(user.getCash()), 0);
         assertThrows(NoUserException.class, () -> userService.updateUserCash(2L, orderRequest));
     }
 
@@ -107,7 +108,7 @@ class UserServiceTest {
         assertThrows(NoUserException.class, () -> userService.getUserInfo(2L));
         assertEquals(userResponse.getNickname(), "test1");
         assertEquals(userResponse.getProfile(), "profile1");
-        assertEquals(userResponse.getCash(), 20000000d);
+        assertEquals(userResponse.getCash().compareTo(BigDecimal.valueOf(20000000)), 0);
     }
 
     @Test
@@ -169,7 +170,7 @@ class UserServiceTest {
                     .role("USER")
                     .profile("profile")
                     .providerId(tmpUserId)
-                    .cash(20000000d - i * 1000000)
+                    .cash(BigDecimal.valueOf(20000000 - i * 1000000))
                     .build();
             userList.add(tmpUser);
         }
@@ -180,11 +181,11 @@ class UserServiceTest {
 
         //then
         for (int i = 0; i < 10; i++) {
-            Long tmpUserId = (long) (10 + i);
+            long tmpUserId = 10 + i;
             UserResponse userResponse = list.get(i);
             assertEquals("test" + tmpUserId, userResponse.getNickname());
             assertEquals("profile", userResponse.getProfile());
-            assertEquals(20000000d - i * 1000000, userResponse.getCash());
+            assertEquals(BigDecimal.valueOf(20000000 - i * 1000000), userResponse.getCash());
         }
     }
 }

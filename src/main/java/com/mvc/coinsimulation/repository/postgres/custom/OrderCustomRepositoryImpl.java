@@ -7,6 +7,7 @@ import jakarta.persistence.LockModeType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,7 +45,7 @@ public class OrderCustomRepositoryImpl implements OrderCustomRepository {
 //            "for update"
 //    )
     @Override
-    public List<Order> findAskOrders(String code, Double price) {
+    public List<Order> findAskOrders(String code, BigDecimal price) {
         return query.selectFrom(order)
                 .innerJoin(order.user, user)
                 .fetchJoin()
@@ -63,7 +64,7 @@ public class OrderCustomRepositoryImpl implements OrderCustomRepository {
 //            "for update"
 //    )z
     @Override
-    public List<Order> findBidOrders(String code, Double price) {
+    public List<Order> findBidOrders(String code, BigDecimal price) {
         return query.selectFrom(order)
                 .innerJoin(order.user, user)
                 .fetchJoin()

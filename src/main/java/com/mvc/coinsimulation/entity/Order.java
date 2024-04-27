@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.beans.BeanUtils;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
@@ -24,10 +25,10 @@ public class Order {
     private String code;
     @Enumerated(EnumType.STRING)
     private Gubun gubun;
-    private Double price;
+    private BigDecimal price;
     @Setter
-    private Double amount;
-    private Double prePrice;
+    private BigDecimal amount;
+    private BigDecimal prePrice;
     private LocalDateTime dateTime;
 
     public OrderResponse toResponse() {

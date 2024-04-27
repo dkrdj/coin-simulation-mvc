@@ -16,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,17 +49,19 @@ class ExecutionServiceTest {
         //given
         List<Execution> executionList = new ArrayList<>();
         LocalDateTime localDateTime = LocalDateTime.now();
-        for (long i = 0; i < 10; i++) {
+        for (int i = 0; i < 10; i++) {
+            BigDecimal amount = BigDecimal.valueOf(0.1).multiply(BigDecimal.valueOf(i));
+            BigDecimal price = BigDecimal.valueOf(1.02).add(BigDecimal.valueOf(i));
             Execution execution = Execution.builder()
-                    .id(i)
+                    .id((long) i)
                     .userId(1L)
                     .gubun(Gubun.ASK)
-                    .amount(0.1 * i)
+                    .amount(amount)
                     .code("code")
-                    .price(1.02 + i)
-                    .totalPrice((0.1 * i) * (1.02 + i))
+                    .price(price)
+                    .totalPrice(amount.multiply(price))
                     .dateTime(localDateTime)
-                    .sequentialId(1294238 + i)
+                    .sequentialId((long) (1294238 + i))
                     .build();
             executionList.add(execution);
         }
@@ -70,13 +73,15 @@ class ExecutionServiceTest {
         //then
         assertEquals(10, executionResponseList.size());
         for (int i = 0; i < 10; i++) {
+            BigDecimal amount = BigDecimal.valueOf(0.1).multiply(BigDecimal.valueOf(i));
+            BigDecimal price = BigDecimal.valueOf(1.02).add(BigDecimal.valueOf(i));
             ExecutionResponse executionResponse = executionResponseList.get(i);
             assertEquals(i, executionResponse.getId());
             assertEquals(Gubun.ASK, executionResponse.getGubun());
-            assertEquals(0.1 * i, executionResponse.getAmount());
+            assertEquals(amount, executionResponse.getAmount());
             assertEquals("code", executionResponse.getCode());
-            assertEquals(1.02 + i, executionResponse.getPrice());
-            assertEquals((0.1 * i) * (1.02 + i), executionResponse.getTotalPrice());
+            assertEquals(price, executionResponse.getPrice());
+            assertEquals(amount.multiply(price), executionResponse.getTotalPrice());
             assertEquals(localDateTime, executionResponse.getDateTime());
         }
 
@@ -88,15 +93,16 @@ class ExecutionServiceTest {
     void executeAsk() {
         //given
         Trade trade = new Trade();
-        trade.setTradeVolume(0.6d);
-        trade.setTradePrice(1000000d);
+        trade.setTradeVolume(BigDecimal.valueOf(0.6));
+        trade.setTradePrice(BigDecimal.valueOf(1000000));
         trade.setSequentialId(34L);
         List<Order> orderList = new ArrayList<>();
         List<User> userList = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
+            BigDecimal amount = BigDecimal.valueOf(0.1).multiply(BigDecimal.valueOf(i));
             Order order = Order.builder()
-                    .amount(0.1 * i)
-                    .price((double) 2000000 * (1 + i))
+                    .amount(amount)
+                    .price(BigDecimal.valueOf(2000000 * (1 + i)))
                     .user(User.builder().id((long) i).build())
                     .gubun(Gubun.BID)
                     .code("code")
@@ -108,17 +114,16 @@ class ExecutionServiceTest {
             userList.add(user);
 
             when(orderService.updateOrder(trade, order))
-                    .thenReturn(Math.min(trade.getTradeVolume(), Math.max(trade.getTradeVolume(), order.getAmount())));
+                    .thenReturn(trade.getTradeVolume().min(trade.getTradeVolume().max(order.getAmount())));
         }
         when(orderRepository.findBidOrders(any(), any())).thenReturn(orderList);
-        when(executionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         //when
         executionService.executeAsk(trade);
 
         //then
         verify(orderService, times(orderList.size())).updateOrder(any(), any());
-        verify(userService, times(orderList.size())).updateUserCash(any(), anyDouble());
+        verify(userService, times(orderList.size())).updateUserCash(any(), any(BigDecimal.class));
         verify(sseService, times(orderList.size())).sendExecution(any());
 
     }
@@ -128,12 +133,12 @@ class ExecutionServiceTest {
     void executeAsk_verify_insert() {
         //given
         Trade trade = new Trade();
-        trade.setTradeVolume(0.6d);
-        trade.setTradePrice(1000000d);
+        trade.setTradeVolume(BigDecimal.valueOf(0.6));
+        trade.setTradePrice(BigDecimal.valueOf(1000000));
         trade.setSequentialId(34L);
         Order order = Order.builder()
-                .amount(0.1d)
-                .price(2000000d)
+                .amount(BigDecimal.valueOf(0.1))
+                .price(BigDecimal.valueOf(2000000))
                 .user(User.builder().id(1L).build())
                 .gubun(Gubun.BID)
                 .code("code")
@@ -144,25 +149,24 @@ class ExecutionServiceTest {
         List<Order> orderList = List.of(order);
         List<User> userList = List.of(user);
 
-        Double executeAmount = 0.1d;
+        BigDecimal executeAmount = BigDecimal.valueOf(0.1);
 
         when(orderService.updateOrder(trade, order)).thenReturn(executeAmount);
         when(orderRepository.findBidOrders(any(), any())).thenReturn(orderList);
-        when(executionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         //when
         executionService.executeAsk(trade);
 
         //then
-        verify(executionRepository).save(argThat(execution ->
-                execution.getPrice().equals(2000000d) &&
-                        execution.getUserId().equals(1L) &&
-                        execution.getGubun().equals(Gubun.BID) &&
-                        execution.getCode().equals("code") &&
-                        execution.getAmount().equals(executeAmount) &&
-                        execution.getTotalPrice().equals(200000d) &&
-                        execution.getDateTime() != null &&
-                        execution.getSequentialId().equals(34L)
+        verify(executionRepository).bulkInsert(argThat(execution ->
+                execution.get(0).getPrice().compareTo(BigDecimal.valueOf(2000000)) == 0 &&
+                        execution.get(0).getUserId().equals(1L) &&
+                        execution.get(0).getGubun().equals(Gubun.BID) &&
+                        execution.get(0).getCode().equals("code") &&
+                        execution.get(0).getAmount().compareTo(executeAmount) == 0 &&
+                        execution.get(0).getTotalPrice().compareTo(BigDecimal.valueOf(200000)) == 0 &&
+                        execution.get(0).getDateTime() != null &&
+                        execution.get(0).getSequentialId().equals(34L)
         ));
     }
 
@@ -171,14 +175,15 @@ class ExecutionServiceTest {
     void executeBid() {
         //given
         Trade trade = new Trade();
-        trade.setTradeVolume(0.6d);
+        trade.setTradeVolume(BigDecimal.valueOf(0.6));
         trade.setSequentialId(34L);
         List<Order> orderList = new ArrayList<>();
         List<Asset> assetList = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
+            BigDecimal amount = BigDecimal.valueOf(0.1).multiply(BigDecimal.valueOf(i));
             Order order = Order.builder()
-                    .amount(0.1 * i)
-                    .price((double) 2000000 * (1 + i))
+                    .amount(amount)
+                    .price(BigDecimal.valueOf(2000000 * (1 + i)))
                     .user(User.builder().id((long) i).build())
                     .gubun(Gubun.ASK)
                     .code("code")
@@ -190,7 +195,7 @@ class ExecutionServiceTest {
             assetList.add(asset);
 
             when(orderService.updateOrder(trade, order))
-                    .thenReturn(Math.min(trade.getTradeVolume(), Math.max(trade.getTradeVolume(), order.getAmount())));
+                    .thenReturn(trade.getTradeVolume().min(trade.getTradeVolume().max(order.getAmount())));
         }
         when(orderRepository.findAskOrders(any(), any())).thenReturn(orderList);
         when(assetService.getAssets(any(), any())).thenReturn(assetList);
@@ -211,11 +216,11 @@ class ExecutionServiceTest {
     void executeBid_verify_insert() {
         //given
         Trade trade = new Trade();
-        trade.setTradeVolume(0.6d);
+        trade.setTradeVolume(BigDecimal.valueOf(0.6));
         trade.setSequentialId(34L);
         Order order = Order.builder()
-                .amount(0.1d)
-                .price(2000000d)
+                .amount(BigDecimal.valueOf(0.1))
+                .price(BigDecimal.valueOf(2000000))
                 .user(User.builder().id(1L).build())
                 .gubun(Gubun.ASK)
                 .code("code")
@@ -226,7 +231,7 @@ class ExecutionServiceTest {
         List<Order> orderList = List.of(order);
         List<Asset> assetList = List.of(asset);
 
-        Double executeAmount = 0.1d;
+        BigDecimal executeAmount = BigDecimal.valueOf(0.1);
         when(orderService.updateOrder(trade, order)).thenReturn(executeAmount);
         when(orderRepository.findAskOrders(any(), any())).thenReturn(orderList);
         when(assetService.getAssets(any(), any())).thenReturn(assetList);
@@ -237,12 +242,12 @@ class ExecutionServiceTest {
 
         //then
         verify(executionRepository).save(argThat(execution ->
-                execution.getPrice().equals(2000000d) &&
+                execution.getPrice().compareTo(BigDecimal.valueOf(2000000)) == 0 &&
                         execution.getUserId().equals(1L) &&
                         execution.getGubun().equals(Gubun.ASK) &&
                         execution.getCode().equals("code") &&
-                        execution.getAmount().equals(executeAmount) &&
-                        execution.getTotalPrice().equals(200000d) &&
+                        execution.getAmount().compareTo(executeAmount) == 0 &&
+                        execution.getTotalPrice().compareTo(BigDecimal.valueOf(200000)) == 0 &&
                         execution.getDateTime() != null &&
                         execution.getSequentialId().equals(34L)
         ));

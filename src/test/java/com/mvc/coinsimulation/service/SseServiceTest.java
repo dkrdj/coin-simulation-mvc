@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -44,8 +45,8 @@ class SseServiceTest {
                 .userId(userId)
                 .gubun(Gubun.ASK)
                 .code("BTC-KRW")
-                .price(20000000d)
-                .amount(1.2342d)
+                .price(BigDecimal.valueOf(20000000))
+                .amount(BigDecimal.valueOf(1.2342))
                 .dateTime(LocalDateTime.now())
                 .build();
 

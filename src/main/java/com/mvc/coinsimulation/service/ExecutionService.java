@@ -51,35 +51,24 @@ public class ExecutionService {
             sseService.sendExecution(execution);
         }
         executionRepository.bulkInsert(executions);
-//        System.out.println("real : " + trade.getSequentialId());
+        System.out.println("real : " + trade.getSequentialId());
     }
 
     @Transactional
     public void executeBid(Trade trade) {
         List<Order> orders = orderRepository.findAskOrders(trade.getCode(), trade.getTradePrice());
         List<Asset> assets = assetService.getAssets(orders, trade);
+        List<Execution> executions = new ArrayList<>();
         Map<Long, Asset> assetMap = assets.stream().collect(Collectors.toMap(Asset::getUserId, Function.identity()));
         for (Order order : orders) {
             BigDecimal executeAmount = orderService.updateOrder(trade, order);
-            Execution execution = insert(trade, order, executeAmount);
+            Execution execution = createExecution(trade, order, executeAmount);
+            executions.add(execution);
             Asset asset = assetMap.get(execution.getUserId());
             assetService.updateAssetForExecution(asset, execution);
             sseService.sendExecution(execution);
         }
-    }
-
-    private Execution insert(Trade trade, Order order, BigDecimal executeAmount) {
-        Execution execution = Execution.builder()
-                .price(order.getPrice())
-                .userId(order.getUser().getId())
-                .gubun(order.getGubun())
-                .code(order.getCode())
-                .amount(executeAmount)
-                .totalPrice(order.getPrice().multiply(executeAmount))
-                .dateTime(LocalDateTime.now())
-                .sequentialId(trade.getSequentialId())
-                .build();
-        return executionRepository.save(execution);
+        executionRepository.bulkInsert(executions);
     }
 
     private Execution createExecution(Trade trade, Order order, BigDecimal executeAmount) {

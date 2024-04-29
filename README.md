@@ -1,4 +1,4 @@
-Coin-Simulcation
+### Coin-Simulcation
 <img width="1298" alt="Untitled" src="https://github.com/dkrdj/coin-simulation-mvc/assets/109264979/594a57d6-ffb0-4bb5-a02e-1006ece3e17d">
 <img width="1271" alt="Untitled 1" src="https://github.com/dkrdj/coin-simulation-mvc/assets/109264979/57e13db7-de08-4478-9d1d-6c51aa3b9bbe">
 <img width="1107" alt="Untitled 2" src="https://github.com/dkrdj/coin-simulation-mvc/assets/109264979/dcb49a1d-d216-4948-9b75-f1a810cc9653">

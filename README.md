@@ -6,10 +6,6 @@ Coin-Simulcation
 
 Upbit 데이터를 통한 코인 모의투자 서비스
 
-### Git
-
-[https://github.com/dkrdj](https://github.com/dkrdj/CoinSimulation)/coin-simulation-mvc
-
 ### 제작기간
 
 2023.10 ~ 진행 중

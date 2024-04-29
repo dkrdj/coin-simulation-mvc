@@ -1,7 +1,8 @@
 Coin-Simulcation
-![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/4757fc46-9d79-4ce0-9d36-8b89652d6839/217d0860-7ecf-4bc6-97e9-e14b87de1b30/Untitled.png)
-![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/4757fc46-9d79-4ce0-9d36-8b89652d6839/2a139114-aa05-471a-8a2f-937be6b983f4/Untitled.png)
-![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/4757fc46-9d79-4ce0-9d36-8b89652d6839/3b1fc834-5a93-412f-9641-e6bfff1fb475/Untitled.png)
+<img width="1298" alt="Untitled" src="https://github.com/dkrdj/coin-simulation-mvc/assets/109264979/594a57d6-ffb0-4bb5-a02e-1006ece3e17d">
+<img width="1271" alt="Untitled 1" src="https://github.com/dkrdj/coin-simulation-mvc/assets/109264979/57e13db7-de08-4478-9d1d-6c51aa3b9bbe">
+<img width="1107" alt="Untitled 2" src="https://github.com/dkrdj/coin-simulation-mvc/assets/109264979/dcb49a1d-d216-4948-9b75-f1a810cc9653">
+
 ### 프로젝트 소개
 
 Upbit 데이터를 통한 코인 모의투자 서비스
@@ -28,16 +29,16 @@ AWS 서버 생성 및 Jenkins 와 Git을 이용한 CI / CD 구축
 
 ### 아키텍처
 
-![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/4757fc46-9d79-4ce0-9d36-8b89652d6839/561f7ae2-d96e-4246-94c8-adb3f744289c/Untitled.png)
+![Untitled 3](https://github.com/dkrdj/coin-simulation-mvc/assets/109264979/7cf69de2-efe2-4e5f-8266-190e47db1b0f)
 
 ### 주요 로직
 
-![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/4757fc46-9d79-4ce0-9d36-8b89652d6839/53eec69d-e0d7-4857-bd27-b103a5a604e6/Untitled.png)
+![Untitled 4](https://github.com/dkrdj/coin-simulation-mvc/assets/109264979/e2c2fe49-7f99-4279-b41c-eb15a7d7853a)
 
 - Upbit한테서 Websocket으로 받은 정보들을 프론트엔드로 그대로 전달
 - 체결 내역들은 유저의 주문목록들을 보고 조건에 맞으면 체결시키고, SSE를 통해 유저에게 전달
 
-![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/4757fc46-9d79-4ce0-9d36-8b89652d6839/f30443f7-bb7d-4635-9dc8-1431b5a0c83d/Untitled.png)
+![Untitled 5](https://github.com/dkrdj/coin-simulation-mvc/assets/109264979/0c16938a-d449-4382-87c7-6689e4bc650b)
 
 ### 문제 상황 및 해결 방법
 
